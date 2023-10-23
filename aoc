@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+file_dir=$(dirname ${BASH_SOURCE[0]})
+AOC_TEMPFILE=/tmp/aoc_env
+
+dependencies=("docker" "curl" "yq")
+missing_deps=()
+for dep in "${dependencies[@]}"; do
+  if ! which "$dep" &> /dev/null; then
+    missing_deps+=("$dep")
+  fi
+done
+
+if [ ${#missing_deps[@]} -gt 0 ]; then
+  echo "Error: Please install the following dependencies: ${missing_deps[*]}"
+  exit 1
+fi
+
+usage() {
+  echo "Usage: ./aoc <command> [<args>]"
+  echo ""
+  echo "Available commands:"
+  echo " new [year] [day] [language]  Create a new problem solution"
+  echo " run [year] [day] [language]  Execute a solution"
+  echo " set <year> <day> <language>  Set default year, day, language"
+  echo " reset                        Clear default year, day, language"
+  echo " test                         Run tests"
+  echo " help                         Display this help message"
+  echo ""
+  echo "Example:"
+  echo "  ./aoc new 2023 01 rust"
+  echo ""
+}
+
+load_env() {
+  if [ -f $AOC_TEMPFILE ]; then
+    source $AOC_TEMPFILE
+  fi
+}
+
+set() {
+  echo "export AOC_YEAR=$2" > $AOC_TEMPFILE
+  echo "export AOC_DAY=$3" >> $AOC_TEMPFILE
+  echo "export AOC_LANG=$4" >> $AOC_TEMPFILE
+}
+
+reset() {
+  rm -f $AOC_TEMPFILE
+}
+
+
+create_solution() {
+  set $@
+  load_env
+  mkdir -p $file_dir/solutions/$AOC_YEAR/$AOC_DAY
+  cp -r $file_dir/languages/$AOC_LANG $file_dir/solutions/$AOC_YEAR/$AOC_DAY/$AOC_LANG
+}
+
+run_solution() {
+  echo "Not yet implemented"
+}
+
+test() {
+  # docker run --rm -it -v "${PWD}:/code" bats/bats:latest test
+  # Check if image exists
+  if ! docker image ls | grep -q "aoc_bats_img"; then
+    echo "Image 'aoc_bats_img' not found. Building it..."
+    docker build -t aoc_bats_img ./test
+  fi
+
+  # Run the tests using the image
+  docker run --rm -it -v "${PWD}:/code" -v /var/run/docker.sock:/var/run/docker.sock aoc_bats_img test
+}
+
+cmd=$1
+case $cmd in
+  new) create_solution $@;;
+  run) run_solution $@;;
+  set) set $@;;
+  reset) reset $@;;
+  test) test $@;;
+  help|-h|--help) usage;;
+  *)
+    echo "Unknown command: $1"
+    echo ""
+    usage
+    exit 1
+    ;;
+esac
