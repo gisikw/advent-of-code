@@ -16,6 +16,9 @@ main() {
     return 1
   fi
 
+  # Format Day as two digits
+  local formatted_day=$(printf "%02d" "$2")
+
   # Validate Language
   local valid_langs=$(yq eval '.languages | keys' "${local_path}/config.yml")
   if ! [[ " $valid_langs " =~ " $3 " ]]; then
@@ -25,7 +28,6 @@ main() {
   fi
 
   echo "export AOC_YEAR=$1" >> $AOC_TEMPFILE
-  echo "export AOC_DAY=$2" >> $AOC_TEMPFILE
+  echo "export AOC_DAY=$formatted_day" >> $AOC_TEMPFILE
   echo "export AOC_LANG=$3" >> $AOC_TEMPFILE
 }
-

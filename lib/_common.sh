@@ -17,6 +17,21 @@ _load_env() {
   fi
 }
 
+_require_session() {
+  local env_file="${local_path}/.env"
+  if [ -f "$env_file" ]; then
+    source "$env_file"
+  else
+    echo "Error: .env file not found."
+    exit 1
+  fi
+
+  if [ -z "${AOC_SESSION}" ]; then
+    echo "Error: AOC_SESSION variable not set in .env file."
+    exit 1
+  fi
+}
+
 usage() {
   echo "Usage: ./aoc <command> [<args>]"
   echo ""
