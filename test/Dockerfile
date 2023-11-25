@@ -4,6 +4,4 @@ FROM bats/bats:latest
 RUN apk add --no-cache \
     curl \
     docker-cli \
-    py3-pip && \
-    pip3 install --upgrade pip && \
-    pip3 install yq
+    yq

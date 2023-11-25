@@ -1,7 +1,7 @@
 languages:
-  rust:
-    container: rust:latest
-    run: cargo run
+  bash:
+    container: bash:latest
+    run: bash solution.sh
   ruby:
     container: ruby:latest
     run: ruby solution.rb
