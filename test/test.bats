@@ -17,8 +17,8 @@ setup() {
 
 @test "can execute all language templates" {
   yq '.languages | keys' ./config.yml | sed 's/- //' | while read lang; do
-    ./aoc new 9999 99 $lang
-    run ./aoc run 2
+    NOVERIFY=1 ./aoc new 9999 99 $lang
+    NOVERIFY=1 run ./aoc run 2
     assert_output --partial "Received 2 lines of input for part 2"
   done
 }

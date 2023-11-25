@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 AOC_TEMPFILE=/tmp/aoc_env
 local_path=$(realpath $(dirname ${BASH_SOURCE[0]}))
+source "${local_path}/lib/_common.sh"
 
 dependencies=("docker" "curl" "yq")
 missing_deps=()
@@ -10,106 +11,13 @@ for dep in "${dependencies[@]}"; do
   fi
 done
 
-if [ ${#missing_deps[@]} -gt 0 ]; then
-  echo "Error: Please install the following dependencies: ${missing_deps[*]}"
+cmd=$1
+shift
+if [[ -f "${local_path}/lib/${cmd}.sh" ]]; then
+  source "${local_path}/lib/${cmd}.sh"
+  main "$@"
+else
+  echo "Unknown command: $cmd"
+  usage
   exit 1
 fi
-
-usage() {
-  echo "Usage: ./aoc <command> [<args>]"
-  echo ""
-  echo "Available commands:"
-  echo " new [year] [day] [language]  Create a new problem solution"
-  echo " run [year] [day] [language]  Execute a solution"
-  echo " set <year> <day> <language>  Set default year, day, language"
-  echo " reset                        Clear default year, day, language"
-  echo " test                         Run tests"
-  echo " help                         Display this help message"
-  echo ""
-  echo "Example:"
-  echo "  ./aoc new 2023 01 rust"
-  echo ""
-}
-
-set() {
-  echo "export AOC_YEAR=$2" >> $AOC_TEMPFILE
-  echo "export AOC_DAY=$3" >> $AOC_TEMPFILE
-  echo "export AOC_LANG=$4" >> $AOC_TEMPFILE
-}
-
-reset() {
-  rm -f $AOC_TEMPFILE
-}
-
-
-create_solution() {
-  set $@
-  _load_env
-  mkdir -p ./solutions/$AOC_YEAR/$AOC_DAY
-  cp -r ./languages/$AOC_LANG ./solutions/$AOC_YEAR/$AOC_DAY/$AOC_LANG
-}
-
-run_solution() {
-  _load_env
-
-  # Freeze the image if it hasn't been done already
-  frozen_image_file="./solutions/$AOC_YEAR/$AOC_DAY/$AOC_LANG/.docker-image-id"
-  if [[ ! -f "$frozen_image_file" ]]; then
-    docker_image_name=$(yq eval ".languages.$AOC_LANG.container" $local_path/config.yml)
-    docker pull $docker_image_name
-    image_id=$(docker inspect --format="{{.Id}}" $docker_image_name)
-    echo $image_id > $frozen_image_file
-  fi
-  docker_image_id=$(cat $frozen_image_file)
-
-  # Fetch the run command for the language from the config file
-  run_command=$(yq eval ".languages.$AOC_LANG.run" $local_path/config.yml)
-
-  base_path=${AOC_WORKING_DIR:-$local_path}
-  problem_path=$base_path/problems/$AOC_YEAR/$AOC_DAY
-  solution_path=$base_path/solutions/$AOC_YEAR/$AOC_DAY/$AOC_LANG
-
-  # Execute the solution
-  docker run --rm \
-    -v $problem_path:/problem \
-    -v $solution_path:/solution \
-    -w /solution \
-    $docker_image_id $run_command /problem/input.txt ${2:-1}
-}
-
-test() {
-  # Check if image exists
-  if ! docker image ls | grep -q "aoc_bats_img"; then
-    echo "Image 'aoc_bats_img' not found. Building it..."
-    docker build -t aoc_bats_img ./test
-  fi
-
-  # Run the tests using the image
-  docker run --rm -it \
-    -v "${local_path}:/code" \
-    -v /var/run/docker.sock:/var/run/docker.sock \
-    -e AOC_WORKING_DIR="$local_path" \
-    aoc_bats_img test
-}
-
-_load_env() {
-  if [ -f $AOC_TEMPFILE ]; then
-    source $AOC_TEMPFILE
-  fi
-}
-
-cmd=$1
-case $cmd in
-  new) create_solution $@;;
-  run) run_solution $@;;
-  set) set $@;;
-  reset) reset $@;;
-  test) test $@;;
-  help|-h|--help) usage;;
-  *)
-    echo "Unknown command: $1"
-    echo ""
-    usage
-    exit 1
-    ;;
-esac
