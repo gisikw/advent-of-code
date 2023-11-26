@@ -32,6 +32,27 @@ _require_session() {
   fi
 }
 
+_setup_problem_dir() {
+  local year=$1
+  local day=$2
+  local problem_dir="${local_path}/problems/${year}/${day}"
+  local solutions_file="${problem_dir}/solutions.yml"
+
+  mkdir -p "$problem_dir"
+
+  if [ ! -f "$solutions_file" ]; then
+    cat > "$solutions_file" << EOF
+official:
+  part1: ""
+  part2: ""
+examples: []
+EOF
+  fi
+
+  echo "$problem_dir"
+}
+
+
 usage() {
   echo "Usage: ./aoc <command> [<args>]"
   echo ""

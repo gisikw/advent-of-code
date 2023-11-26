@@ -1,5 +1,5 @@
 _usage() {
-  echo "new [year] [day] [language]"
+  echo "new <year> <day> <language>"
   echo "Create a new solution"
 }
 
