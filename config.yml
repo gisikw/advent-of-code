@@ -8,3 +8,6 @@ languages:
   rust:
     container: rust:latest
     run: cargo run --quiet --bin solution
+  python:
+    container: python:latest
+    run: python solution.py
