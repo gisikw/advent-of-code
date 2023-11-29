@@ -5,3 +5,6 @@ languages:
   ruby:
     container: ruby:latest
     run: ruby solution.rb
+  rust:
+    container: rust:latest
+    run: cargo run --quiet --bin solution
