@@ -14,3 +14,21 @@ languages:
   node:
     container: node:latest
     run: node solution.js
+  go:
+    container: golang:latest
+    run: go run solution.go
+  haskell:
+    container: haskell:latest
+    run: runhaskell solution.hs
+  elixir:
+    container: elixir:latest
+    run: elixir solution.exs
+  erlang:
+    container: erlang:latest
+    run: escript solution.erl
+  swift:
+    container: swift:latest
+    run: swift solution.swift
+  julia:
+    container: julia:latest
+    run: julia solution.jl
