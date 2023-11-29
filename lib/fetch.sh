@@ -4,6 +4,7 @@ _usage() {
 }
 
 main() {
+  [[ CI -eq 1 ]] && return 0
   _require_session
 
   local year=$1

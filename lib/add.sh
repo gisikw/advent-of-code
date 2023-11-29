@@ -1,5 +1,5 @@
 _usage() {
-  echo "add <example> [<answer>]"
+  echo "add <example> [<part 1 answer>]"
   echo "Add a new example input and optional answer"
 }
 
@@ -18,20 +18,18 @@ main() {
     return 1
   fi
 
-  # Check for existing example
-  if [[ -f "$solutions_file" ]]; then
-    local existing_example=$(yq e ".examples[] | select(.input == \"$example_name.txt\")" "$solutions_file")
-    if [[ -n "$existing_example" ]]; then
-      echo "Error: An example with the name '$example_name' already exists."
-      return 1
-    fi
+  # Setup problem directory and solutions file if they don't exist
+  _setup_problem_dir "$AOC_YEAR" "$AOC_DAY"
 
-    # Add new example
-    yq e -i ".examples += [{\"input\": \"$example_name.txt\", \"answer\": \"$answer\"}]" "$solutions_file"
-  else
-    echo "Error: solutions.yml not found."
+  # Check for existing example
+  local existing_example=$(yq e ".examples[] | select(.input == \"$example_name.txt\")" "$solutions_file")
+  if [[ -n "$existing_example" ]]; then
+    echo "Error: An example with the name '$example_name' already exists."
     return 1
   fi
+
+  # Add new example
+  yq e -i ".examples += [{\"input\": \"$example_name.txt\", \"part1\": \"$answer\"}]" "$solutions_file"
 
   # Create and open the example input file
   touch "$example_file"
