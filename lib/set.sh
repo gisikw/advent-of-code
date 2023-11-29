@@ -1,6 +1,6 @@
 _usage() {
-  echo "set <year> <day> <language>"
-  echo "Set default year, day, and language"
+  echo "set <year> <day> [<language>]"
+  echo "Set default year, day, and optionally language"
 }
 
 main() {
@@ -19,15 +19,19 @@ main() {
   # Format Day as two digits
   local formatted_day=$(printf "%02d" "$2")
 
-  # Validate Language
-  local valid_langs=$(yq eval '.languages | keys' "${local_path}/config.yml")
-  if ! [[ "$valid_langs" =~ "$3" ]]; then
-    echo "Error: Language must be one of the supported languages."
-    echo "$valid_langs"
+  # Get list of supported languages
+  local valid_langs=($(yq eval '.languages | keys | .[]' "${local_path}/config.yml"))
+
+  # Select language randomly if not provided
+  local selected_lang=$3
+  if [[ -z "$selected_lang" ]]; then
+    selected_lang=${valid_langs[$RANDOM % ${#valid_langs[@]}]}
+  elif ! [[ " ${valid_langs[*]} " =~ " $selected_lang " ]]; then
+    echo "Error: Language must be one of the supported languages: ${valid_langs[*]}."
     return 1
   fi
 
   echo "export AOC_YEAR=$1" >> $AOC_TEMPFILE
   echo "export AOC_DAY=$formatted_day" >> $AOC_TEMPFILE
-  echo "export AOC_LANG=$3" >> $AOC_TEMPFILE
+  echo "export AOC_LANG=$selected_lang" >> $AOC_TEMPFILE
 }
