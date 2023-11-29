@@ -11,3 +11,6 @@ languages:
   python:
     container: python:latest
     run: python solution.py
+  node:
+    container: node:latest
+    run: node solution.js
