@@ -21,7 +21,7 @@ main() {
 
   # Validate Language
   local valid_langs=$(yq eval '.languages | keys' "${local_path}/config.yml")
-  if ! [[ " $valid_langs " =~ " $3 " ]]; then
+  if ! [[ "$valid_langs" =~ "$3" ]]; then
     echo "Error: Language must be one of the supported languages."
     echo "$valid_langs"
     return 1
