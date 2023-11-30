@@ -2,75 +2,75 @@ languages:
   bash:
     container: bash:latest
     run: bash solution.sh
-  ruby:
-    container: ruby:latest
-    run: ruby solution.rb
-  rust:
-    container: rust:latest
-    run: cargo run --quiet --bin solution
-  python:
-    container: python:latest
-    run: python solution.py
-  node:
-    container: node:latest
-    run: node solution.js
-  go:
-    container: golang:latest
-    run: go run solution.go
-  haskell:
-    container: haskell:latest
-    run: runhaskell solution.hs
+  c:
+    container: gcc:latest
+    run: /bin/sh run.sh
+  clojure:
+    container: clojure:latest
+    run: clojure -M -i solution.clj -m solution
+  crystal:
+    container: crystallang/crystal:latest
+    run: crystal run solution.cr --
+  d:
+    container: dlanguage/dmd
+    run: /bin/sh run.sh
   elixir:
     container: elixir:latest
     run: elixir solution.exs
   erlang:
     container: erlang:latest
     run: escript solution.erl
-  swift:
-    container: swift:latest
-    run: swift solution.swift
+  go:
+    container: golang:latest
+    run: go run solution.go
+  groovy:
+    container: groovy:latest
+    run: groovy solution.groovy
+  haskell:
+    container: haskell:latest
+    run: runhaskell solution.hs
+  haxe:
+    container: haxe:latest
+    run: haxe --run Solution
+  java:
+    container: openjdk:17
+    run: /bin/sh run.sh
   julia:
     container: julia:latest
     run: julia solution.jl
   lua:
     container: alpinelinux/lua-turbo
     run: lua solution.lua
+  node:
+    container: node:latest
+    run: node solution.js
   ocaml:
     container: ocaml/opam:latest
     run: ocaml solution.ml
-  clojure:
-    container: clojure:latest
-    run: clojure -M -i solution.clj -m solution
-  r:
-    container: r-base:latest
-    run: Rscript solution.R
   perl:
     container: perl:latest
     run: perl solution.pl
-  c:
-    container: gcc:latest
-    run: /bin/sh run.sh
-  crystal:
-    container: crystallang/crystal:latest
-    run: crystal run solution.cr --
   php:
     container: php:cli
     run: php solution.php
+  python:
+    container: python:latest
+    run: python solution.py
+  r:
+    container: r-base:latest
+    run: Rscript solution.R
   racket:
     container: racket/racket
     run: racket solution.rkt
+  ruby:
+    container: ruby:latest
+    run: ruby solution.rb
+  rust:
+    container: rust:latest
+    run: cargo run --quiet --bin solution
   scala:
     container: sbtscala/scala-sbt:graalvm-ce-22.3.3-b1-java17_1.9.7_3.3.1
     run: /bin/sh run.sh
-  java:
-    container: openjdk:17
-    run: /bin/sh run.sh
-  groovy:
-    container: groovy:latest
-    run: groovy solution.groovy
-  d:
-    container: dlanguage/dmd
-    run: /bin/sh run.sh
-  haxe:
-    container: haxe:latest
-    run: haxe --run Solution
+  swift:
+    container: swift:latest
+    run: swift solution.swift
