@@ -41,3 +41,36 @@ languages:
   clojure:
     container: clojure:latest
     run: clojure -M -i solution.clj -m solution
+  r:
+    container: r-base:latest
+    run: Rscript solution.R
+  perl:
+    container: perl:latest
+    run: perl solution.pl
+  c:
+    container: gcc:latest
+    run: /bin/sh run.sh
+  crystal:
+    container: crystallang/crystal:latest
+    run: crystal run solution.cr --
+  php:
+    container: php:cli
+    run: php solution.php
+  racket:
+    container: racket/racket
+    run: racket solution.rkt
+  scala:
+    container: sbtscala/scala-sbt:graalvm-ce-22.3.3-b1-java17_1.9.7_3.3.1
+    run: /bin/sh run.sh
+  java:
+    container: openjdk:17
+    run: /bin/sh run.sh
+  groovy:
+    container: groovy:latest
+    run: groovy solution.groovy
+  d:
+    container: dlanguage/dmd
+    run: /bin/sh run.sh
+  haxe:
+    container: haxe:latest
+    run: haxe --run Solution
