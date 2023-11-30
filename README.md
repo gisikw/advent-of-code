@@ -17,7 +17,7 @@ inputs and submitting answers via CLI.
 ./aoc run example 2         # Run the current solution against the example input
 ```
 
-# Automatic Solution Checking
+# Automatic Solution Checking / Submission
 
 In addition to creating ./solutions folders for the implementation, a ./problem
 folder is created to hold the official inputs and any example inputs you choose
@@ -62,3 +62,16 @@ argument are applied.
 The first time a solution is run, the specific docker image id is frozen via a
 `.docker-image-id` file in the particular solution directory, thus ensuring the
 solution can always be run in the environment for which it was built.
+
+# Language Templates
+
+Each language template provides a scaffold that can output the number of lines
+from an input file, along with the problem part that was passed in. We rely on
+STDIO to make things behave consistently, and the `test/` folder ensures that
+all language templates return the same output for a sample input file when
+invoked the same way.
+
+In the cases of languages requiring build infrastructure, or esoteric languages
+that don't support file i/o or argv, the language template may include a
+./run.sh command that accepts the inputfile and part args, but can bootstrap
+the specific implementation.

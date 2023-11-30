@@ -80,6 +80,7 @@ _process_official_output() {
   elif [[ -n "$known_hash" && "$known_hash" != "null" ]]; then
     _output_failure "Expected MD5: $known_hash"
   else
+    _prompt_to_save_solution
     _prompt_to_submit_solution
   fi
 }
