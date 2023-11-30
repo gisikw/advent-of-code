@@ -32,3 +32,12 @@ languages:
   julia:
     container: julia:latest
     run: julia solution.jl
+  lua:
+    container: alpinelinux/lua-turbo
+    run: lua solution.lua
+  ocaml:
+    container: ocaml/opam:latest
+    run: ocaml solution.ml
+  clojure:
+    container: clojure:latest
+    run: clojure -M -i solution.clj -m solution
