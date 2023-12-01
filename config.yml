@@ -71,6 +71,9 @@ languages:
   scala:
     container: sbtscala/scala-sbt:graalvm-ce-22.3.3-b1-java17_1.9.7_3.3.1
     run: /bin/sh run.sh
+  spl:
+    container: python:latest
+    run: /bin/sh run.sh
   swift:
     container: swift:latest
     run: swift solution.swift
