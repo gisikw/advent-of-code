@@ -4,6 +4,8 @@ _usage() {
 }
 
 main() {
+  local lang=$1
+
   # Check if image exists
   if ! docker image ls | grep -q "aoc_bats_img"; then
     echo "Image 'aoc_bats_img' not found. Building it..."
@@ -15,5 +17,7 @@ main() {
     -v "${local_path}:/code" \
     -v /var/run/docker.sock:/var/run/docker.sock \
     -e AOC_WORKING_DIR="$local_path" \
+    -e SPECIFIC_LANG="$lang" \
     aoc_bats_img test
 }
+

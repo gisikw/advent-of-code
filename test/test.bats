@@ -22,7 +22,13 @@ EOF
 }
 
 @test "can execute all language templates" {
-  yq '.languages | keys' ./config.yml | sed 's/- //' | while read lang; do
+  if [ -z "$SPECIFIC_LANG" ]; then
+    languages=$(yq '.languages | keys' ./config.yml | sed 's/- //')
+  else
+    languages=$SPECIFIC_LANG
+  fi
+
+  for lang in $languages; do
     CI=1 NOVERIFY=1 run ./aoc new 9999 25 $lang
     CI=1 NOVERIFY=1 run ./aoc run 2
     assert_output --partial "Received 2 lines of input for part 2"
