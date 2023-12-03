@@ -53,6 +53,9 @@ languages:
   php:
     container: php:cli
     run: php solution.php
+  prolog:
+    container: swipl:latest
+    run: swipl solution.pl
   python:
     container: python:latest
     run: python solution.py
