@@ -74,6 +74,9 @@ languages:
   spl:
     container: python:latest
     run: /bin/sh run.sh
+  sql:
+    container: postgres:latest
+    run: /bin/sh run.sh
   swift:
     container: swift:latest
     run: swift solution.swift
