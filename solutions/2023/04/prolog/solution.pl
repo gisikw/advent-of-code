@@ -1,6 +1,5 @@
 % solution.pl
 
-% Entry point
 start(FilePath, Part) :-
   read_file_lines(FilePath, Lines),
   answer(Part, Lines, AnswerString),
@@ -8,32 +7,33 @@ start(FilePath, Part) :-
   halt.
 
 answer(Part, Lines, AnswerString) :-
-  (Part = 1 -> answer_part_1(AnswerString, Lines); answer_part_2(AnswerString, Lines)).
+  (   Part = 1 
+  ->  answer_part_1(AnswerString, Lines)
+  ;   answer_part_2(AnswerString, Lines)
+  ).
 
 answer_part_1(AnswerString, Lines) :- 
-  card_scores(Lines, Scores),
+  card_scores(Lines, [], Scores),
   sum_list(Scores, Sum),
   AnswerString = Sum.
 
-card_scores([], []).
-card_scores(Lines, Scores) :-
-  Lines = [Line|RestLines],
-  Scores = [Score|RestScores],
+card_scores([], Acc, Acc).
+card_scores([Line|Rest], Acc, Scores) :-
   card_score(Line, Score),
-  card_scores(RestLines, RestScores).
+  card_scores(Rest, [Score|Acc], Scores).
 
 card_score(Line, Score) :- 
-  split_string(Line, ":", " ", [_|NumberStringTail]),
-  [NumberString] = NumberStringTail,
-  split_string(NumberString, "|", " ", [WinningString|HaveStringTail]),
-  [HaveString] = HaveStringTail,
-  split_string(WinningString, " ", " ", WinningNumbers),
-  split_string(HaveString, " ", " ", CardNumbers),
+  extract_numbers(Line, CardNumbers, WinningNumbers),
   score_nums(Score, CardNumbers, WinningNumbers).
+
+extract_numbers(Line, CardNumbers, WinningNumbers) :-
+  split_string(Line, ":", " ", [_|[NumberString]]),
+  split_string(NumberString, "|", " ", [WinningString|[CardNumString]]),
+  split_string(WinningString, " ", " ", WinningNumbers),
+  split_string(CardNumString, " ", " ", CardNumbers).
 
 score_nums(Score, [Num], WinningNumbers) :-
   (member(Num, WinningNumbers) -> Score = 1; Score = 0).
-
 score_nums(Score, [Num|Rest], WinningNumbers) :-
   score_nums(Subscore, Rest, WinningNumbers),
   (   member(Num, WinningNumbers)
@@ -42,18 +42,17 @@ score_nums(Score, [Num|Rest], WinningNumbers) :-
   ).
 
 answer_part_2(AnswerString, Lines) :-
-  build_top_level_indices(Lines, 0, AllIndices),
+  build_top_level_indices(Lines, 0, [], AllIndices),
   assertz(reward(0, AllIndices)),
   build_rewards(Lines, 1),
   recursive_reward_count(0, AllRewards),
   AllRewardsExceptFakeStartCard is AllRewards - 1,
   AnswerString = AllRewardsExceptFakeStartCard.
 
-build_top_level_indices([], _, Indices) :- Indices = [].
-build_top_level_indices([_|Rest], Index, Indices) :-
+build_top_level_indices([], _, Acc, Acc).
+build_top_level_indices([_|Rest], Index, Acc, Indices) :-
   NextIndex is Index + 1,
-  build_top_level_indices(Rest, NextIndex, NextIndices),
-  Indices = [NextIndex | NextIndices].
+  build_top_level_indices(Rest, NextIndex, [NextIndex | Acc], Indices).
 
 recursive_reward_count(Index, Sum) :-
   reward(Index, Children),
@@ -66,34 +65,35 @@ recursive_reward_count(Index, Sum) :-
 
 acc_sum(AccIn, X, AccOut) :- AccOut is AccIn + X.
 
-build_rewards([], _) :- true.
+build_rewards([], _).
 build_rewards([Line|Rest], Index) :-
   card_score(Line, Score),
   score_to_count(Score, Count),
-  next_n_indices(Index, Count, NextIndices),
+  next_n_indices(Index, Count, [], NextIndices),
   assertz(reward(Index, NextIndices)),
   NextIndex is Index + 1,
   build_rewards(Rest, NextIndex).
 
 score_to_count(Score, Count) :-
-  (Score < 2 -> Count = Score; score_to_count(Score / 2, Subcount), Count is Subcount + 1).
-
-next_n_indices(_, 0, NextIndices) :- NextIndices = [].
-next_n_indices(Index, Count, NextIndices) :-
-  NextIndex is Index + 1,
-  NextCount is Count - 1,
-  next_n_indices(NextIndex, NextCount, OtherIndices),
-  NextIndices = [NextIndex | OtherIndices].
-
-% Read all lines from a file into a list
-read_file_lines(FilePath, Lines) :-
-  setup_call_cleanup(
-      open(FilePath, read, Stream),
-      read_lines(Stream, Lines),
-      close(Stream)
+  (   Score < 2 
+  ->  Count = Score
+  ;   score_to_count(Score / 2, Subcount), 
+      Count is Subcount + 1
   ).
 
-% Read lines from a stream into a list
+next_n_indices(_, 0, Acc, Acc).
+next_n_indices(Index, Count, Acc, NextIndices) :-
+  NextIndex is Index + 1,
+  NextCount is Count - 1,
+  next_n_indices(NextIndex, NextCount, [NextIndex | Acc], NextIndices).
+
+read_file_lines(FilePath, Lines) :-
+  setup_call_cleanup(
+    open(FilePath, read, Stream),
+    read_lines(Stream, Lines),
+    close(Stream)
+  ).
+
 read_lines(Stream, Lines) :-
   read_line_to_string(Stream, Line),
   (   Line \= end_of_file
@@ -102,7 +102,6 @@ read_lines(Stream, Lines) :-
   ;   Lines = []
   ).
 
-% Start the program with arguments
 :- 
   current_prolog_flag(argv, [FilePath, PartAtom]),
   atom_number(PartAtom, Part),
