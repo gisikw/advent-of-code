@@ -2,7 +2,7 @@ import System.Environment
 import Data.List (sortBy, foldl')
 import Data.Ord (comparing)
 
-data Transformation = Transformation { lb :: Int, ub :: Int, delta :: Int } deriving (Show)
+data Transformation = Transformation { dst :: Int, src :: Int, len :: Int } deriving (Show)
 
 main :: IO ()
 main = do
@@ -13,7 +13,7 @@ main = do
       let (seeds, definitions) = parseContent content
       let results = case (read part) of
                       1 -> minimum $ map (processTransforms definitions) seeds
-                      2 -> seekMinimum seeds definitions maxBound :: Int
+                      2 -> seekMinimum 1 seeds definitions
       print results
     _ -> putStrLn "Incorrect arguments"
 
@@ -30,23 +30,33 @@ splitBlocks [] current defs = reverse current : defs
 splitBlocks ("" : ls) current defs = splitBlocks ls [] (reverse current : defs)
 splitBlocks (l : ls) current defs = splitBlocks ls (l : current) defs
 
-parseBlock block = sortBy (comparing lb) $ map parseRange $ drop 1 block
+parseBlock block = sortBy (comparing dst) $ map parseRange $ drop 1 block
 
 parseRange line =
   let [dst, src, len] = map (read :: String -> Int) $ words line
-  in Transformation src (src + len) (dst - src)
+  in Transformation dst src len
 
 processTransforms definitions seed = foldl' transform seed definitions
 
 transform :: Int -> [Transformation] -> Int
 transform n [] = n
-transform n (Transformation lb ub change : rs)
-  | n >= lb && n < ub = n + change
-  | n < lb = n
+transform n (Transformation dst src len : rs)
+  | n >= src && n < src + len = n + dst - src
   | otherwise = transform n rs
 
-seekMinimum [] defs min = min
-seekMinimum (a : 1 : rest) defs min = seekMinimum rest defs min
-seekMinimum (a : b : rest) defs min =
-  let nextMin = minimum [min, (processTransforms defs a)]
-  in seekMinimum (succ(a) : pred(b) : rest) defs nextMin
+processUntransforms definitions seed = foldl' untransform seed $ reverse definitions
+
+untransform n [] = n
+untransform n (Transformation dst src len : rs)
+  | n >= dst && n < dst + len = n + src - dst
+  | n < dst = n
+  | otherwise = untransform n rs
+
+seekMinimum n seeds definitions =
+  let s = processUntransforms definitions n
+  in if haveSeed s seeds then n else seekMinimum (n + 1) seeds definitions
+
+haveSeed s [] = False
+haveSeed s (init:len:rest)
+  | s >= init && s < init + len = True
+  | otherwise = haveSeed s rest
