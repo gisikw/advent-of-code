@@ -28,7 +28,7 @@ languages:
     run: groovy solution.groovy
   haskell:
     container: haskell:latest
-    run: runhaskell solution.hs
+    run: /bin/sh run.sh
   haxe:
     container: haxe:latest
     run: haxe --run Solution
