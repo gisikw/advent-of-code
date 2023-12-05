@@ -12,7 +12,7 @@ main = do
   let remainder = drop 2 input
   let definitions = parseDefinitions(input)
 
-  let results = if part == 1 then map (processTransforms definitions) seeds else [seekMinimum seeds definitions 999999]
+  let results = if part == 1 then map (processTransforms definitions) seeds else [seekMinimum seeds definitions maxBound :: Int]
   print (minimum results)
 
 parseSeeds line = map (read :: String -> Int) (drop 1 (words line))
