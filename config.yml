@@ -20,6 +20,9 @@ languages:
   erlang:
     container: erlang:latest
     run: escript solution.erl
+  fsharp:
+    container: mcr.microsoft.com/dotnet/sdk:latest
+    run: dotnet fsi solution.fsx
   go:
     container: golang:latest
     run: go run solution.go
@@ -38,6 +41,9 @@ languages:
   julia:
     container: julia:latest
     run: julia solution.jl
+  kotlin:
+    container: alpine:latest
+    run: /bin/sh run.sh
   lua:
     container: alpinelinux/lua-turbo
     run: lua solution.lua
