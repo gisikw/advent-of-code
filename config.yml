@@ -83,3 +83,6 @@ languages:
   swift:
     container: swift:latest
     run: swift solution.swift
+  zig:
+    container: alpine:latest
+    run: /bin/sh run.sh
