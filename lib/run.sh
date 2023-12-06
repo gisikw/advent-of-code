@@ -30,14 +30,24 @@ main() {
 }
 
 _prepare_docker_container() {
-  frozen_image_file="${local_path}/solutions/$AOC_YEAR/$AOC_DAY/$AOC_LANG/.docker-image-id"
-  if [[ ! -f "$frozen_image_file" ]]; then
+  local dockerfile_path="${local_path}/languages/${AOC_LANG}/Dockerfile"
+  local docker_image_name=$(yq eval ".languages.${AOC_LANG}.container" "$local_path/config.yml")
+  local frozen_image_file="${local_path}/solutions/$AOC_YEAR/$AOC_DAY/$AOC_LANG/.docker-image-id"
+
+  if [[ -f "$dockerfile_path" ]]; then
+    # todo: tag this based on sha of Dockerfile?
+    local docker_tag="aoc_${AOC_LANG}:latest"
+    if [[ "$(docker images -q $docker_tag 2> /dev/null)" == "" ]]; then
+      docker build -t $docker_tag -f "$dockerfile_path" .
+    fi
+    docker_image_id=$docker_tag
+  elif [[ -f "$frozen_image_file" ]]; then
+    docker_image_id=$(cat $frozen_image_file)
+  else
     docker_image_name=$(yq eval ".languages.$AOC_LANG.container" $local_path/config.yml)
     docker pull $docker_image_name
     docker_image_id=$(docker inspect --format="{{.Id}}" $docker_image_name)
     echo $docker_image_id > $frozen_image_file
-  else
-    docker_image_id=$(cat $frozen_image_file)
   fi
 }
 

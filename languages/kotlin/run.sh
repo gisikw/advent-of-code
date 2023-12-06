@@ -1,13 +1,7 @@
 #!/bin/bash
 
-apk add wget unzip openjdk11 bash
-mkdir /var/kotlin
-(
-  cd /var/kotlin
-  wget https://github.com/JetBrains/kotlin/releases/download/v1.9.21/kotlin-compiler-1.9.21.zip
-  unzip kotlin-compiler-1.9.21.zip
-)
-export PATH=/var/kotlin/kotlinc/bin:$PATH
+# Compile is slow, and this unfortunately doesn't seem to meaningfully help
+export JAVA_OPTS="-Xmx2048m -Xms1024m"
 
 kotlinc solution.kt -include-runtime -d solution.jar
 java -jar solution.jar "$@"
