@@ -1,8 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 int readInt(FILE *file);
-long int score(int time, long int dist);
+long int score(long int time, long int dist);
 long int shift(long int num, int basis);
 
 int main(int argc, char *argv[]) {
@@ -45,11 +46,8 @@ int readInt(FILE *file) {
   return atoi(buffer);
 }
 
-long int score(int time, long int dist) {
-  long int button = 0;
-  do {
-    button++;
-  } while (button * (time - button) <= dist);
+long int score(long int time, long int dist) {
+  long int button = (sqrt((time * time) - (4 * dist)) - time) / -2 + 1;
   return time - (2 * button) + 1;
 }
 
