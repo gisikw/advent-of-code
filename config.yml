@@ -42,7 +42,6 @@ languages:
     container: julia:latest
     run: julia solution.jl
   kotlin:
-    container: alpine:latest
     run: /bin/sh run.sh
   lua:
     container: alpinelinux/lua-turbo
@@ -89,6 +88,11 @@ languages:
   swift:
     container: swift:latest
     run: swift solution.swift
+  tcl:
+    container: esolang/tcl
+    run: tclsh solution.tcl
+  v:
+    run: v run solution.v
   zig:
     container: alpine:latest
     run: /bin/sh run.sh
