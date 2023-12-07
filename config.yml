@@ -35,6 +35,8 @@ languages:
   haxe:
     container: haxe:latest
     run: haxe --run Solution
+  io:
+    run: io solution.io
   java:
     container: openjdk:17
     run: /bin/sh run.sh
@@ -64,6 +66,8 @@ languages:
   python:
     container: python:latest
     run: python solution.py
+  qbasic:
+    run: /bin/sh run.sh
   r:
     container: r-base:latest
     run: Rscript solution.R
