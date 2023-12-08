@@ -7,3 +7,4 @@ examples:
     part2: "6"
   - input: example2.txt
     part1: "6"
+    part2: "6"
