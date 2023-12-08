@@ -35,8 +35,9 @@ _prepare_docker_container() {
   local frozen_image_file="${local_path}/solutions/$AOC_YEAR/$AOC_DAY/$AOC_LANG/.docker-image-id"
 
   if [[ -f "$dockerfile_path" ]]; then
-    # todo: tag this based on sha of Dockerfile?
-    local docker_tag="aoc_${AOC_LANG}:latest"
+    local dockerfile_md5sum=$(md5sum "$dockerfile_path" | awk '{print $1}')
+    local docker_tag="aoc_${AOC_LANG}:${dockerfile_md5sum}"
+
     if [[ "$(docker images -q $docker_tag 2> /dev/null)" == "" ]]; then
       docker build -t $docker_tag -f "$dockerfile_path" .
     fi
