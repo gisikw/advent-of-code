@@ -9,7 +9,9 @@ main([InputFile, Part]) ->
     Result = case Part of 
                "1" -> traverse("AAA", 0, parse_path(Route), Nodes);
                  _ -> GhostNodes = find_ghost_nodes(Nodes),
-                      traverseAll(GhostNodes, 0, parse_path(Route), Nodes)
+                      Loops = lists:reverse(lists:sort(lists:map(fun(Node) -> trunc(traverseOne(Node, 0, parse_path(Route), Nodes) / length(Route)) end, GhostNodes))),
+                      Product = lists:foldl(fun (A, B) -> A * B end, 1, Loops),
+                      Product * length(Route)
              end,
     io:format("~p~n", [Result]).
 
@@ -29,14 +31,11 @@ traverse(CurrentNode, Distance, [ Direction | Rest ], Nodes) ->
   NextRoute = lists:append(Rest, [Direction]),
   traverse(NextNode, Distance + 1, NextRoute, Nodes).
 
-% 90 being ASCII "Z"
-traverseAll(CurrentNodes, Distance, [ Direction | Rest ], Nodes) ->
-  case lists:all(fun([_, _, C]) -> C == 90 end, CurrentNodes) of
-    true -> Distance;
-    _ -> NextNodes = lists:map(fun(Node) -> element(Direction, dict:fetch(Node, Nodes)) end, CurrentNodes),
-         NextRoute = lists:append(Rest, [Direction]),
-         traverseAll(NextNodes, Distance + 1, NextRoute, Nodes)
-  end.
+traverseOne([_,_,90], Distance, _, _) -> Distance;
+traverseOne(CurrentNode, Distance, [ Direction | Rest ], Nodes) ->
+  NextNode = element(Direction, dict:fetch(CurrentNode, Nodes)),
+  NextRoute = lists:append(Rest, [Direction]),
+  traverseOne(NextNode, Distance + 1, NextRoute, Nodes).
 
 make_nodes([], Dict) -> Dict;
 make_nodes([ Head | Tail ], Dict) ->
