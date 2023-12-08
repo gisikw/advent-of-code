@@ -1,0 +1,9 @@
+official:
+  part1: "0b273b9a5033296646175710f43c6780"
+  part2: ""
+examples:
+  - input: example.txt
+    part1: "6"
+    part2: "6"
+  - input: example2.txt
+    part1: "6"
