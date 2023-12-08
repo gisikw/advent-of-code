@@ -4,38 +4,35 @@
 main([InputFile, Part]) ->
     {ok, BinaryContent} = file:read_file(InputFile),
     Content = binary_to_list(BinaryContent),
-    [ Route | [ _ | NodeLines ] ] = string:split(rtrim(Content), "\n", all),
+    [ Path | [ _ | NodeLines ] ] = string:split(rtrim(Content), "\n", all),
+    Route = parse_path(Path),
     Nodes = make_nodes(NodeLines, dict:new()),
     Result = case Part of 
-               "1" -> traverse("AAA", 0, parse_path(Route), Nodes);
+               "1" -> traverse("AAA", 0, Route, Nodes, fun is_zzz/1);
                  _ -> GhostNodes = find_ghost_nodes(Nodes),
-                      Loops = lists:reverse(lists:sort(lists:map(fun(Node) -> trunc(traverseOne(Node, 0, parse_path(Route), Nodes) / length(Route)) end, GhostNodes))),
+                      Loops = sort_descending(get_loop_lengths(GhostNodes, Route, Nodes)),
+                      % Laziest LCM
                       Product = lists:foldl(fun (A, B) -> A * B end, 1, Loops),
                       Product * length(Route)
              end,
     io:format("~p~n", [Result]).
 
-rtrim(String) ->
-    case lists:reverse(String) of
-        [$\n | Rest] -> lists:reverse(Rest);
-        _ -> String
-    end.
+get_loop_lengths(StartingNodes, Route, Nodes) ->
+  lists:map(
+    fun (N) -> trunc(traverse(N, 0, Route, Nodes, fun ends_in_z/1) / length(Route)) end,
+    StartingNodes).
 
 % 76 being ASCII "L"
 parse_path(String) -> 
   lists:map(fun(C) -> case C of 76 -> 1; _ -> 2 end end, String).
 
-traverse("ZZZ", Distance, _, _) -> Distance;
-traverse(CurrentNode, Distance, [ Direction | Rest ], Nodes) ->
-  NextNode = element(Direction, dict:fetch(CurrentNode, Nodes)),
-  NextRoute = lists:append(Rest, [Direction]),
-  traverse(NextNode, Distance + 1, NextRoute, Nodes).
-
-traverseOne([_,_,90], Distance, _, _) -> Distance;
-traverseOne(CurrentNode, Distance, [ Direction | Rest ], Nodes) ->
-  NextNode = element(Direction, dict:fetch(CurrentNode, Nodes)),
-  NextRoute = lists:append(Rest, [Direction]),
-  traverseOne(NextNode, Distance + 1, NextRoute, Nodes).
+traverse(CurrentNode, Distance, [ Direction | Rest ], Nodes, ArrivedFn) ->
+  case ArrivedFn(CurrentNode) of
+    true -> Distance;
+    _ -> NextNode = element(Direction, dict:fetch(CurrentNode, Nodes)),
+         NextRoute = lists:append(Rest, [Direction]),
+         traverse(NextNode, Distance + 1, NextRoute, Nodes, ArrivedFn)
+  end.
 
 make_nodes([], Dict) -> Dict;
 make_nodes([ Head | Tail ], Dict) ->
@@ -45,7 +42,22 @@ make_nodes([ Head | Tail ], Dict) ->
 % 65 being ASCII "A"
 find_ghost_nodes(Nodes) ->
   lists:filtermap(
-    fun(Char) -> 
-        [_, _, C] = Char, 
-        case C of 65 -> {true,Char}; _ -> false end 
-    end, dict:fetch_keys(Nodes)).
+    fun(C) -> case ends_in_a(C) of true -> {true,C}; _ -> false end end,
+    dict:fetch_keys(Nodes)).
+
+rtrim(String) ->
+    case lists:reverse(String) of
+        [$\n | Rest] -> lists:reverse(Rest);
+        _ -> String
+    end.
+
+sort_descending(List) -> lists:reverse(lists:sort(List)).
+
+is_zzz("ZZZ") -> true;
+is_zzz(_) -> false.
+
+ends_in_a([_,_,65]) -> true;
+ends_in_a(_) -> false.
+
+ends_in_z([_,_,90]) -> true;
+ends_in_z(_) -> false.
