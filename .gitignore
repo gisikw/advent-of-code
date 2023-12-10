@@ -1,3 +1,4 @@
 .env
-problems/9999
-solutions/9999
+/problems/9999
+/solutions/9999
+/problems/*/*/*.txt
