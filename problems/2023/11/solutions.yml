@@ -1,0 +1,6 @@
+official:
+  part1: ""
+  part2: ""
+examples:
+  - input: example.txt
+    part1: "374"
