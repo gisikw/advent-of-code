@@ -25,14 +25,11 @@ class Map
   end
 
   def dist(a, b)
-    r1, r2 = [a[0], b[0]].sort
-    c1, c2 = [a[1], b[1]].sort
-    rows = (r1...r2)
-    cols = (c1...c2)
-
-    (r2 - r1) + (c2 - c1) + (@scale - 1) * (
-      @expanded_rows.count {|r| rows.includes?(r) } + 
-      @expanded_cols.count {|c| cols.includes?(c) }
+    r1, r2 = a[0] < b[0] ? [a[0], b[0]] : [b[0], a[0]]
+    c1, c2 = a[1] < b[1] ? [a[1], b[1]] : [b[1], a[1]]
+    r2 - r1 + c2 - c1 + (@scale - 1) * (
+      @expanded_rows.count {|r| r > r1 && r < r2 } + 
+      @expanded_cols.count {|c| c > c1 && c < c2 }
     )
   end
 
