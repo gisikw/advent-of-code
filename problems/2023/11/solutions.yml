@@ -1,6 +1,7 @@
 official:
   part1: ""
-  part2: ""
+  part2: "ec6bb964c246769ff275d2ed5ce22827"
 examples:
   - input: example.txt
     part1: "374"
+    part2: "82000210"

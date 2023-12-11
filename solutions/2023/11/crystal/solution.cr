@@ -1,28 +1,11 @@
 input_file = ARGV[0]
 part = ARGV[1]
 
-# Want to use Djikstra's algorithm to build a shortest-path tree to all destinations
-
-# Going to actually expand the map rather than use weights, because the weights
-# will be different vertically and horizontally, and it feels too easy to screw
-# it up. Expanding seems to work without issue, so we'll just hope the weights
-# are fine too.
-
-# How to do this with weighting:
-# - Add a weight cost for entering the square if it's from the expanding direction? Feels like it ought to work, but idk
-# - Note: Initial attempt failed
-#
-# Other optimization: kill the algorithm if all destinations are accounted for.
-
 class PQueue
   @contents : Array(Array(Int32))
 
   def initialize
     @contents = [[0]]
-  end
-
-  def contents
-    @contents
   end
 
   def empty?
@@ -72,26 +55,17 @@ end
 
 class Map
   @rows : Array(Array(String))
+  @expanded_rows : Array(Int32)
+  @expanded_cols : Array(Int32)
 
   def initialize(file)
     @rows = File.read_lines(file).map { |line| line.split("") }
+    @expanded_rows = @rows.each_index.select { |i| @rows[i].all? { |c| c == "." }}.to_a
+    @expanded_cols = @rows[0].each_index.select { |i| @rows.all? { |r| r[i] == "." }}.to_a
   end
 
   def to_s(io : IO)
     io << @rows.map { |row| row.join("") }.join("\n")
-  end
-
-  def expand
-    @rows = 
-      @rows.reduce([] of Array(String)) { |acc, row|
-        acc << row
-        acc << row if row.all? { |c| c == "." }
-        acc
-      }.transpose.reduce([] of Array(String)) { |acc, row|
-        acc << row
-        acc << row if row.all? { |c| c == "." }
-        acc
-      }.transpose
   end
 
   def galaxies
@@ -104,7 +78,7 @@ class Map
     results
   end
 
-  def distances(source, dests)
+  def distances(source, dests, scale)
     dist = Hash(Int32, Hash(Int32, Int32)).new
     visited = Hash(Int32, Hash(Int32, Bool)).new
     pq = PQueue.new
@@ -120,7 +94,7 @@ class Map
     dist[source[0]][source[1]] = 0
     pq << source.unshift(dist[source[0]][source[1]])
 
-    until pq.empty? # || dests.all? { |d| dist[d] < Int32::MAX } More expensive than it's worth
+    until pq.empty? # || dests.all? { |d| visited.has_key?(d[0]) && visited[d[0]].has_key?(d[1]) } too much a perf hit
       score, row, col = pq.pop
       next if visited[row][col]
       visited[row][col] = true
@@ -128,7 +102,10 @@ class Map
         .select { |n| dist.has_key?(n[0]) && dist[n[0]].has_key?(n[1]) }
         .each do |neighbor|
           next_row, next_col = neighbor
-          alt = score + 1
+          weight = 1
+          weight = scale if @expanded_rows.includes?(row) && row != next_row
+          weight = scale if @expanded_cols.includes?(col) && col != next_col
+          alt = score + weight
           dist[next_row][next_col] = alt if alt < dist[next_row][next_col]
           pq << [dist[next_row][next_col], next_row, next_col]
         end
@@ -138,20 +115,12 @@ class Map
   end
 end
 
-# PQueue: 12.3s -> 0.24s for a single distances call on a 64x64 grid
-# Early termination might by more helpful on this larger grid
-# Dangit, we're gonna need to scale ridiculously for part 2, which means weights
-
+scale_value = part == "1" ? 2 : 1000000
 map = Map.new(input_file)
 map.expand
 galaxies = map.galaxies
-# puts "Beginning the algorithm..."
-# elapsed = Time.measure do
-#   puts map.distances(galaxies[0], galaxies[1..-1])
-# end
-# puts elapsed
-# puts "Number of galaxies to measure? #{galaxies.size}"
 distances = (0..galaxies.size-2).map do |i|
-  map.distances(galaxies[i], galaxies[i+1..-1])
-end.flatten.reduce(0) { |acc, num| acc + num }
-puts distances
+  map.distances(galaxies[i], galaxies[i+1..-1], scale_value)
+end.flatten
+puts distances.join("\n")
+puts distances.reduce(0.to_i64) { |acc, num| acc + num.to_i64 }
