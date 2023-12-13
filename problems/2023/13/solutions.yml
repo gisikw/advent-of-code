@@ -1,0 +1,7 @@
+official:
+  part1: "c6bbc108763169e14489202ab2a296be"
+  part2: "5ee94a1dab24140d186fe48def60b528"
+examples:
+  - input: example.txt
+    part1: "405"
+    part2: "400"
