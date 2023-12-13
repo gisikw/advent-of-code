@@ -14,7 +14,7 @@ main() {
   [[ -z "$example_name" ]] && example_name="input"
 
   _prepare_docker_container
-  output_file="/tmp/aoc_output.txt"
+  output_file="/tmp/aoc_output.txt"; rm -f "$output_file"
   solutions_file="$local_path/problems/$AOC_YEAR/$AOC_DAY/solutions.yml"
 
   _execute_solution | tee "$output_file"
@@ -25,8 +25,6 @@ main() {
   else
     _process_example_output
   fi
-
-  rm "$output_file"
 }
 
 _prepare_docker_container() {
