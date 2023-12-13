@@ -1,23 +1,25 @@
-set inputFile [lindex $argv 0]
-set part [lindex $argv 1]
-
-set file [open $inputFile]
-set content [read $file]
-close $file
-
-set lines [split $content "\n"]
-
-set patterns [list]
-foreach line $lines {
-  if { $line == "" } {
-    set patterns [lappend patterns $pattern]
-    set pattern [list]
-    continue
-  }
-  set pattern [lappend pattern $line]
+proc readLines {filename} {
+  set file [open $filename]
+  set content [read $file]
+  close $file
+  return [split $content "\n"]
 }
 
-proc HorizontalReflection {pattern {ignore -1}} {
+proc parsePatterns {lines} {
+  set patterns [list]
+  set patterm [list]
+  foreach line $lines {
+    if {$line == ""} {
+      lappend patterns $pattern
+      set pattern [list]
+    } else {
+      lappend pattern $line
+    }
+  }
+  return $patterns
+}
+
+proc horizontalReflection {pattern {ignore -1}} {
   set height [llength $pattern]
   for {set row 1} {$row < $height} {incr row} {
     if { $row == $ignore } { continue }
@@ -44,7 +46,7 @@ proc Col {pattern  c} {
   return $result
 }
 
-proc VerticalReflection {pattern {ignore -1}} {
+proc verticalReflection {pattern {ignore -1}} {
   set width [string length [lindex $pattern 0]]
   for {set col 1} {$col < $width} {incr col} {
     if { $col == $ignore } { continue }
@@ -63,16 +65,15 @@ proc VerticalReflection {pattern {ignore -1}} {
   return 0
 }
 
-
-proc SummarizePattern {pattern} {
-  set result [VerticalReflection $pattern]
+proc summarizePattern {pattern} {
+  set result [verticalReflection $pattern]
   if {$result > 0} { return $result }
-  set result [expr {100*[HorizontalReflection $pattern]}]
+  set result [expr {100*[horizontalReflection $pattern]}]
   return $result
 }
 
-proc Mangle {pattern} {
-  set oldResult [SummarizePattern $pattern]
+proc mangle {pattern} {
+  set oldResult [summarizePattern $pattern]
   set width [string length [lindex $pattern 0]]
   set height [llength $pattern]
   for {set row 0} {$row < $height} {incr row} {
@@ -81,21 +82,24 @@ proc Mangle {pattern} {
       set oldChar [string index $rowStr $col]
       if {$oldChar == "#"} { set c "." } else { set c "#" }
       set newPattern [lreplace $pattern $row $row [string replace $rowStr $col $col $c]]
-      set newVert [VerticalReflection $newPattern $oldResult]
+      set newVert [verticalReflection $newPattern $oldResult]
       if {$newVert > 0 && $newVert != $oldResult} { return $newVert }
-      set newHoriz [expr {100*[HorizontalReflection $newPattern [expr {$oldResult / 100}]]}]
+      set newHoriz [expr {100*[horizontalReflection $newPattern [expr {$oldResult / 100}]]}]
       if {$newHoriz > 0 && $newHoriz != $oldResult} { return $newHoriz }
     }
   }
   return 0
 }
 
+set inputFile [lindex $argv 0]
+set part [lindex $argv 1]
+
 set sum 0
-foreach pattern $patterns {
+foreach pattern [parsePatterns [readLines $inputFile]] {
   if {$part == 1} {
-    incr sum [SummarizePattern $pattern]
+    incr sum [summarizePattern $pattern]
   } else {
-    incr sum [Mangle $pattern]
+    incr sum [mangle $pattern]
   }
 }
 puts $sum
