@@ -7,7 +7,7 @@ proc readLines {filename} {
 
 proc parsePatterns {lines} {
   set patterns [list]
-  set patterm [list]
+  set pattern [list]
   foreach line $lines {
     if {$line == ""} {
       lappend patterns $pattern
