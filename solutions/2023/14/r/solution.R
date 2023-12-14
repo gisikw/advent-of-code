@@ -14,16 +14,16 @@ rrotate <- function(grid) {
 }
 
 do_gravity_row <- function(row) {
+  dest <- 1  # Initialize the destination pointer
   for (src in 1:length(row)) {
     if (row[src] == "O") {
-      dest <- src
-      while (row[dest-1] != "#" && row[dest-1] != "O" && dest > 1) {
-        dest <- dest - 1  
+      if (src != dest) {
+        row[dest] <- "O"
+        row[src] <- "."
       }
-      if (dest != src) {
-        row[src] = "."
-        row[dest] = "O"
-      }
+      dest <- dest + 1
+    } else if (row[src] == "#") {
+      dest <- src + 1
     }
   }
   row
@@ -33,52 +33,34 @@ do_gravity <- function(grid) {
   t(apply(grid, 1, do_gravity_row))
 }
 
-score_row <- function(row) {
-  sum(row=="O")
-}
-
 score <- function(grid) {
-  row_scores <- apply(grid, 1, score_row)
-  i <- length(row_scores)
-  total <- 0
-  for (score in row_scores) {
-    total <- total + i * score
-    i <- i - 1
-  }
-  total
+  row_scores <- apply(grid, 1, function(row) sum(row == "O"))
+  sum(row_scores * seq(from = length(row_scores), to = 1))
 }
 
-cycle <- function(grid) {
-  grid <- do_gravity(grid)
-  grid <- rrotate(grid)
-  grid <- do_gravity(grid)
-  grid <- rrotate(grid)
-  grid <- do_gravity(grid)
-  grid <- rrotate(grid)
-  grid <- do_gravity(grid)
-  grid <- rrotate(grid)
-  grid
+transform_and_rotate <- function(grid, n) {
+  rrotate(do_gravity(grid))
+}
+
+cycle <- function(grid, unused = NULL) {
+  rrotate(Reduce(transform_and_rotate, 1:4, rotate(grid), accumulate = FALSE))
 }
 
 if (part == 1) {
-  grid <- rotate(grid)
-  grid <- do_gravity(grid)
-  grid <- rrotate(grid)
-  cat(sprintf("%d\n",score(grid)))
+  cat(sprintf("%d\n",score(rrotate(do_gravity(rotate(grid))))))
 } else {
   target_cycles <- 1000000000
   seen <- c()
+  grid_str <- ""
   while (TRUE) {
-    grid <- rrotate(cycle(rotate(grid)))
+    grid <- cycle(grid)
     grid_str <- paste(grid, collapse = "")
     if (grid_str %in% seen) break
     seen <- append(seen, grid_str)
   }
-  offset <- match(paste(grid, collapse = ""), seen)
+  offset <- match(grid_str, seen)
   loop_len <- length(seen) + 1 - offset
   remaining_cycles = (target_cycles - offset) %% loop_len
-  for (i in 1:remaining_cycles) {
-    grid <- rrotate(cycle(rotate(grid)))
-  }
+  grid <- Reduce(cycle, 1:remaining_cycles, grid, accumulate = FALSE)
   cat(sprintf("%d\n",score(grid)))
 }
