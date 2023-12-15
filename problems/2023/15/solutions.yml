@@ -1,0 +1,9 @@
+official:
+  part1: "5fc2cfe5299841008308f767b50ad841"
+  part2: "49504d6dff9b5e4508cfdff25878ff42"
+examples:
+  - input: hash.txt
+    part1: "52"
+  - input: example.txt
+    part1: "1320"
+    part2: "145"
