@@ -1,0 +1,7 @@
+official:
+  part1: "838f14a84363d9a7ac1b06ad63fc6fb5"
+  part2: "3fe230348e9a12c13120749e3f9fa4cd"
+examples:
+  - input: example.txt
+    part1: "46"
+    part2: "51"
