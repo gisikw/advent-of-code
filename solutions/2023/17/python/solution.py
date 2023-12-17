@@ -1,25 +1,24 @@
 import sys
 import math
 from queue import PriorityQueue
+from functools import partial
+
+MOVEMENT = [(0,1),(1,0),(0,-1),(-1,0)]
+SYMBOLS = [">", "V", "<", "^"]
 
 def main(input_file, part):
     with open(input_file, 'r') as file:
         grid = list(map(list, file.readlines()))
-        score, path = dijkstra(grid, part1_neighbors if part == "1" else part2_neighbors)
+        neighbors_func = partial(neighbors, (0,3) if part == "1" else (4,10))
+        score, path = dijkstra(grid, neighbors_func)
         print_path(grid, path)
         print(score)
 
 def print_path(grid, path):
     for (row, col, rot, rep) in path:
-        if rot == 0: grid[row][col] = ">"
-        if rot == 1: grid[row][col] = "V"
-        if rot == 2: grid[row][col] = "<"
-        if rot == 3: grid[row][col] = "^"
-    flat = [x for xs in grid for x in xs]
-    print("".join(flat))
+        grid[row][col] = SYMBOLS[rot]
+    print(''.join(''.join(row) for row in grid))
 
-# Each node is a tuple of (row, col, rotation from East, repeats)
-# There is some neighbor pruning we ought to be able to do, e.g. Up->Right == Down->Right
 def dijkstra(grid, neighbors):
     height = len(grid)
     width = len(grid[0]) - 1
@@ -39,56 +38,34 @@ def dijkstra(grid, neighbors):
                 dist[ncell] = alt 
                 prev[ncell] = cell
             if nrow == height - 1 and ncol == width - 1:
-                s = list()
-                u = ncell
-                while u:
-                    s.append(u)
-                    u = prev.get(u, None)
-                s.reverse()
-                return alt, s
+                return alt, trace_path(ncell, prev)
             pq.put((dist[ncell], ncell))
 
-def part1_neighbors(cell, grid):
-    row, col, rot, rep = cell
-    results = list()
-    # East
-    if rot == 1 or rot == 3 or (rot == 0 and rep < 2):
-        if col + 1 < len(grid):
-            results.append((int(grid[row][col+1]), (row, col+1, 0, 0 if rot != 0 else rep + 1)))
-    # South
-    if rot == 0 or rot == 2 or (rot == 1 and rep < 2):
-        if row + 1 < len(grid):
-            results.append((int(grid[row+1][col]), (row+1, col, 1, 0 if rot != 1 else rep + 1)))
-    # West
-    if rot == 1 or rot == 3 or (rot == 2 and rep < 2):
-        if col - 1 >= 0:
-            results.append((int(grid[row][col-1]), (row, col-1, 2, 0 if rot != 2 else rep + 1)))
-    # North
-    if rot == 0 or rot == 2 or (rot == 3 and rep < 2):
-        if row - 1 >= 0:
-            results.append((int(grid[row-1][col]), (row-1, col, 3, 0 if rot != 3 else rep + 1)))
-    return results
+def trace_path(cell, prev):
+    path = []
+    while cell:
+        path.append(cell)
+        cell = prev.get(cell, None)
+    path.reverse()
+    return path
 
-def part2_neighbors(cell, grid):
+def sides(dir):
+    return (dir + 3) % 4, (dir + 1) % 4
+
+def inbounds(row, col, grid):
+    return 0 <= row < len(grid) and 0 <= col < len(grid[0]) - 1
+
+def neighbors(config, cell, grid):
+    min_straight, max_straight = config
     row, col, rot, rep = cell
-    results = list()
-    offset = max(4 - rep, 1)
-    # East
-    if ((rot == 1 or rot == 3) and rep > 3) or (rot == 0 and rep < 10):
-        if col + offset < len(grid[0]) - 1:
-            results.append((int(grid[row][col+1]), (row, col+1, 0, 1 if rot != 0 else rep + 1)))
-    # South
-    if ((rot == 0 or rot == 2) and rep > 3) or (rot == 1 and rep < 10):
-        if row + offset < len(grid):
-            results.append((int(grid[row+1][col]), (row+1, col, 1, 1 if rot != 1 else rep + 1)))
-    # West
-    if ((rot == 1 or rot == 3) and rep > 3) or (rot == 2 and rep < 10):
-        if col - offset >= 0:
-            results.append((int(grid[row][col-1]), (row, col-1, 2, 1 if rot != 2 else rep + 1)))
-    # North
-    if ((rot == 0 or rot == 2) and rep > 3) or (rot == 3 and rep < 10):
-        if row - offset >= 0:
-            results.append((int(grid[row-1][col]), (row-1, col, 3, 1 if rot != 3 else rep + 1)))
+    rem_straight = max(min_straight - rep, 1)
+    results = []
+    for dir in range(0,4):
+        if (rot in sides(dir) and rep >= min_straight) or (rot == dir and rep < max_straight):
+            drow, dcol = MOVEMENT[dir]
+            nrow, ncol = row + drow, col + dcol
+            if inbounds(row + (drow * rem_straight), col + (dcol * rem_straight), grid):
+                results.append((int(grid[nrow][ncol]), (nrow, ncol, dir, 1 if rot != dir else rep + 1)))
     return results
 
 if __name__ == "__main__":
