@@ -4,152 +4,54 @@ import std.array;
 import std.file;
 import std.range;
 import std.conv;
+import std.string;
 
-void push(T)(ref T[] xs, T x) {
-  xs ~= x;
-}
-
-T pop(T)(ref T[] xs) {
-  T x = xs[0];
-  moveAll(xs[1 .. $], xs[0 .. $-1]);
-  --xs.length;
-  return x;
-}
+string DIRECTIONS = "RDLU";
 
 void main(string[] args) {
     auto inputFile = args[1];
     auto part = args[2];
     auto content = cast(string) readText(inputFile);
-    auto moves = 
-      content.split('\n')
-        .filter!(line => !line.empty)
-        .map!(line => take(line.split(' '),2));
+    auto lines = content.split('\n').filter!(line => !line.empty);
 
-    // string[][] nmoves;
-    // foreach(line; content.split('\n')) {
-    //   if (line.empty) continue;
-    //   auto hexstr = line.split(' ')[2][2 .. $-1];
-    //   string dist = to!string(to!int(hexstr[0 .. $-1], 16));
-    //   nmoves ~= [[dist, "U"]];
-    // }
+    long[][] points;
+    long x = 0;
+    long y = 0;
+    points ~= [x, y];
+    long perimeter = 0;
 
-    // Function extraction is being weird, so...parse the grid size
-    int minRow = 0;
-    int maxRow = 0;
-    int minCol = 0;
-    int maxCol = 0;
-    int col = 0;
-    int row = 0;
-    foreach(move; moves) {
-      string dir = move[0];
-      int num = parse!int(move[1]);
-      if (dir == "U") {
-        row = row - num;
-        minRow = min(minRow, row);
-      } else if (dir == "D") {
-        row = row + num;
-        maxRow = max(maxRow, row);
-      } else if (dir == "L") {
-        col = col - num;
-        minCol = min(minCol, col);
+    foreach(line; lines) {
+      string[] splits = line.split(' ');
+      long dir, dist;
+      if (part == "1") {
+        dir = to!long(DIRECTIONS.indexOf(splits[0]));
+        dist = to!long(splits[1]);
       } else {
-        col = col + num;
-        maxCol = max(maxCol, col);
+        string hexstr = splits[2][2 .. $-1];
+        dir = to!long(hexstr[$-1 .. $]);
+        dist = to!long(hexstr[0 .. $-1], 16);
       }
+
+      perimeter += dist;
+
+      // From the instruction, construct the next point
+      if (dir == 0) x += dist;
+      else if (dir == 1) y -= dist;
+      else if (dir == 2) x -= dist;
+      else if (dir == 3) y += dist;
+
+      points ~= [x, y];
     }
 
-    // Add a border to allow for better flood fill
-    maxRow++;
-    maxCol++;
-    minRow--;
-    minCol--;
+    points.reverse();
 
-    row = minRow * -1;
-    col = minCol * -1;
-    int height = maxRow - minRow + 1;
-    int width = maxCol - minCol + 1;
-
-    writeln(height, ",", width);
-
-    // START THE MAIN PART 1
-    char[][] grid;
-    grid.length = height;
-    for (int i = 0; i < height; i++) {
-      grid[i].length = width;
-      for (int j = 0; j < width; j++) {
-        grid[i][j] = '.';
-      }
+    long sum = 0;
+    for (int i = 0; i < points.length-1; i++) {
+      sum += points[i][0] * points[i+1][1] - points[i+1][0] * points[i][1];
     }
 
-    // START IT THO FOR REAL
-    grid[row][col] = '#';
-    foreach(move; moves) {
-      string dir = move[0];
-      int num = parse!int(move[1]);
-      if (dir == "U") {
-        for (int i = 0; i < num; i++) {
-          grid[--row][col] = '#';
-        }
-      } else if (dir == "D") {
-        for (int i = 0; i < num; i++) {
-          grid[++row][col] = '#';
-        }
-      } else if (dir == "L") {
-        for (int i = 0; i < num; i++) {
-          grid[row][--col] = '#';
-        }
-      } else {
-        for (int i = 0; i < num; i++) {
-          grid[row][++col] = '#';
-        }
-      }
-    }
+    sum /= 2;
+    perimeter /= 2;
 
-    // Try PROPER interior detection - row by row, count the boundaries. If it's odd, we're inside
-    // for (int r = 0; r < height; r++) {
-    //   // 0 -> out, 1 -> entering wall, 2 -> inside
-    //   int state = 0;
-    //   for (int c = 0; c < width; c++) {
-    //     if (grid[r][c] == '#' && c < width - 1 && grid[r][c+1] != '#' && c > 0 && grid[r][c-1] != '#') {
-    //       inside = !inside;
-    //     } else if (inside) {
-    //       grid[r][c] = '*';
-    //     }
-    //   }
-    // }
-
-    int[] queue;
-    queue.push(height-1);
-    queue.push(0);
-
-    while (queue.length > 0) {
-      int r = queue.pop();
-      int c = queue.pop();
-      if (r < 0 || r >= height || c < 0 || c >= width) continue;
-      if (grid[r][c] != '.') continue;
-      grid[r][c] = '_';
-      queue.push(r+1);
-      queue.push(c);
-      queue.push(r-1);
-      queue.push(c);
-      queue.push(r);
-      queue.push(c+1);
-      queue.push(r);
-      queue.push(c-1);
-    }
-
-    // Print the grid
-    for (int i = 0; i < height; i++) {
-      writeln(grid[i]);
-    }
-
-    int count = 0;
-    for (int r = 0; r < height; r++) {
-      for (int c = 0; c < width; c++) {
-        if (grid[r][c] == '#') count++;
-        if (grid[r][c] == '.') count++;
-      }
-    }
-  
-    writeln(count);
+    writeln(sum + perimeter + 1); // Magic off-by-one
 }
