@@ -14,6 +14,9 @@ languages:
   d:
     container: dlanguage/dmd
     run: /bin/sh run.sh
+  dart:
+    container: dart:latest
+    run: dart solution.dart
   elixir:
     container: elixir:latest
     run: elixir solution.exs
@@ -48,6 +51,9 @@ languages:
   lua:
     container: alpinelinux/lua-turbo
     run: lua solution.lua
+  nim:
+    container: nimlang/nim
+    run: /bin/sh run.sh
   node:
     container: node:latest
     run: node solution.js
