@@ -5,7 +5,6 @@ use Data::Dumper;
 my %workflows;
 my @parts;
 
-
 my $indices = "xmas";
 
 sub ParseRule {
@@ -74,19 +73,62 @@ if($part eq "1") {
   exit 0;
 }
 
-# Graph traversal - find the min/max accepted ranges for x,m,a,s...except no!
-# That won't work, because the conditions aren't free to vary independently.
-# e.g. 100 <= x <= 200 may only be fine when m < 4
-# 
-# Does it make sense to crawl this backwards? Find all accepts, and branch out
-# backwards? This feels like a repeat of a prior day as well. Day 5
-#
-# I feel like we can merge these nodes? Bubble them up, so to speak?
-# mtn is R,R, so any direct to mtn can be replaced with a direct to R, and we can remove that node
-# pk{s<2557:A,R}
-# hrq{m>912:zn,s<2570:pk,x<3198:A,A} could thus be replaced as
-# hrq{m>912:zn,(s<2557:A,2557 < s < 2570:R),x<3198:A,A} could thus be replaced as
-#
-# Okay, so how about this:
-# - Convert every rule to x,m,a,s lb-ub to be accepted
-# - Propagate backward from terminals, until we have a range for x,m,a, and s
+my @accepts;
+
+sub DFS {
+  my ($name, $minX, $maxX, $minM, $maxM, $minA, $maxA, $minS, $maxS) = @_;
+  return if $name eq "R";
+  if($name eq "A") {
+    push(@accepts, [$minX,$maxX,$minM,$maxM,$minA,$maxA,$minS,$maxS]);
+    return;
+  }
+  my @workflow = @{$workflows{$name}};
+  my @rules = @{$workflow[1]};
+  my $else = $workflow[0];
+
+  for ( @rules ) {
+    my ($value, $comparator, $threshold, $target) = @{$_};
+    if ($value == 0) {
+      if ($comparator eq "<") {
+        DFS($target, $minX, $threshold - 1, $minM, $maxM, $minA, $maxA, $minS, $maxS);
+        $minX = $threshold;
+      } else {
+        DFS($target, $threshold + 1, $maxX, $minM, $maxM, $minA, $maxA, $minS, $maxS);
+        $maxX = $threshold;
+      }
+    } elsif ($value == 1) {
+      if ($comparator eq "<") {
+        DFS($target, $minX, $maxX, $minM, $threshold - 1, $minA, $maxA, $minS, $maxS);
+        $minM = $threshold;
+      } else {
+        DFS($target, $minX, $maxX, $threshold + 1, $maxM, $minA, $maxA, $minS, $maxS);
+        $maxM = $threshold;
+      }
+    } elsif ($value == 2) {
+      if ($comparator eq "<") {
+        DFS($target, $minX, $maxX, $minM, $maxM, $minA, $threshold - 1, $minS, $maxS);
+        $minA = $threshold;
+      } else {
+        DFS($target, $minX, $maxX, $minM, $maxM, $threshold + 1, $maxA, $minS, $maxS);
+        $maxA = $threshold;
+      }
+    } else {
+      if ($comparator eq "<") {
+        DFS($target, $minX, $maxX, $minM, $maxM, $minA, $maxA, $minS, $threshold - 1);
+        $minS = $threshold;
+      } else {
+        DFS($target, $minX, $maxX, $minM, $maxM, $minA, $maxA, $threshold + 1, $maxS);
+        $maxS = $threshold;
+      }
+    }
+  }
+  DFS($else, $minX, $maxX, $minM, $maxM, $minA, $maxA, $minS, $maxS);
+}
+
+DFS("in", 1, 4000, 1, 4000, 1, 4000, 1, 4000);
+my $sum = 0;
+for ( @accepts ) {
+  my ($minX, $maxX, $minM, $maxM, $minA, $maxA, $minS, $maxS) = @{$_};
+  $sum += ($maxX - $minX + 1) * ($maxM - $minM + 1) * ($maxA - $minA + 1) * ($maxS - $minS + 1);
+}
+print("$sum\n");
