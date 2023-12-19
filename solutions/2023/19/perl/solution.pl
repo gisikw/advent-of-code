@@ -1,134 +1,100 @@
 use strict;
 use warnings;
-use Data::Dumper;
-
-my %workflows;
-my @parts;
 
 my $indices = "xmas";
-
-sub ParseRule {
+sub parse_rule {
   my ($str) = @_;
   $str =~ /(\w)([<>])(\d+):(\w+)/;
   [index($indices, $1),$2,$3,$4];
 }
 
-sub ParseWorkflow {
+sub parse_workflow {
   my ($str) = @_;
   $str =~ /^([^{]+)\{(.*),(\w+)\}$/;
-  my @parsedRules = map { ParseRule $_ } split(/,/, $2);
+  my @parsedRules = map { parse_rule $_ } split(/,/, $2);
   ($1, $3, @parsedRules);
 }
 
-my ($input_file, $part) = @ARGV;
-open my $fh, '<', $input_file or die "Can't open file $!";
-
-# Parse Workflows
-while (my $line = <$fh>) {
-  last if $line eq "\n";
-  next if $line eq "\n";
-  my ($name, $else, @rules) = ParseWorkflow($line);
-  $workflows{$name} = [$else, [@rules]];
+sub parse_file {
+  my ($input_file) = @_;
+  my %workflows;
+  my @parts;
+  open my $fh, '<', $input_file or die "Can't open file $!";
+  while (my $line = <$fh>) {
+    last if $line eq "\n";
+    my ($name, $else, @rules) = parse_workflow($line);
+    $workflows{$name} = [$else, [@rules]];
+  }
+  while (my $line = <$fh>) {
+    my @matches = ($line =~ /=(\d+)/g);
+    push @parts, [@matches];
+  }
+  close $fh;
+  return (\%workflows, \@parts);
 }
 
-# Parse Parts
-while (my $line = <$fh>) {
-  my @matches = ($line =~ /=(\d+)/g);
-  push @parts, [@matches];
-}
+sub process_workflow {
+  my ($workflows, $current, $part) = @_;
+  my @rules = @{$workflows->{$current}[1]};
+  my $default = $workflows->{$current}[0];
 
-close $fh;
-
-if($part eq "1") {
-  my $sum = 0;
-  for ( @parts ) {
-    my @p = @{$_};
-    my $next = "in";
-
-    while ($next ne "R" && $next ne "A") {
-      my @workflow = @{$workflows{$next}};
-      my @rules = @{$workflow[1]};
-
-      $next = $workflow[0];
-      for ( @rules ) {
-        my ($value, $comparator, $threshold, $target) = @{$_};
-        if($comparator eq "<") {
-          if($p[$value] < $threshold) {
-            $next = $target;
-            last;
-          }
-        } elsif($p[$value] > $threshold) {
-          $next = $target;
-          last;
-        }
-      }
-    }
-
-    if ($next eq "A") {
-      $sum += $p[0] + $p[1] + $p[2] + $p[3];
+  for my $rule (@rules) {
+    my ($value, $comparator, $threshold, $target) = @$rule;
+    if (($comparator eq "<" && $part->[$value] < $threshold) || 
+        ($comparator eq ">" && $part->[$value] > $threshold)) {
+      return $target;
     }
   }
-
-  print("$sum\n");
-  exit 0;
+  return $default;
 }
 
 my @accepts;
+my ($input_file, $part) = @ARGV;
+my ($workflows_ref, $parts_ref) = parse_file($input_file);
+my %workflows = %{$workflows_ref};
+my @parts = @{$parts_ref};
 
 sub DFS {
-  my ($name, $minX, $maxX, $minM, $maxM, $minA, $maxA, $minS, $maxS) = @_;
+  my ($name, @bounds) = @_;
   return if $name eq "R";
   if($name eq "A") {
-    push(@accepts, [$minX,$maxX,$minM,$maxM,$minA,$maxA,$minS,$maxS]);
+    push(@accepts, [@bounds]);
     return;
   }
   my @workflow = @{$workflows{$name}};
   my @rules = @{$workflow[1]};
   my $else = $workflow[0];
-
-  for ( @rules ) {
-    my ($value, $comparator, $threshold, $target) = @{$_};
-    if ($value == 0) {
-      if ($comparator eq "<") {
-        DFS($target, $minX, $threshold - 1, $minM, $maxM, $minA, $maxA, $minS, $maxS);
-        $minX = $threshold;
-      } else {
-        DFS($target, $threshold + 1, $maxX, $minM, $maxM, $minA, $maxA, $minS, $maxS);
-        $maxX = $threshold;
-      }
-    } elsif ($value == 1) {
-      if ($comparator eq "<") {
-        DFS($target, $minX, $maxX, $minM, $threshold - 1, $minA, $maxA, $minS, $maxS);
-        $minM = $threshold;
-      } else {
-        DFS($target, $minX, $maxX, $threshold + 1, $maxM, $minA, $maxA, $minS, $maxS);
-        $maxM = $threshold;
-      }
-    } elsif ($value == 2) {
-      if ($comparator eq "<") {
-        DFS($target, $minX, $maxX, $minM, $maxM, $minA, $threshold - 1, $minS, $maxS);
-        $minA = $threshold;
-      } else {
-        DFS($target, $minX, $maxX, $minM, $maxM, $threshold + 1, $maxA, $minS, $maxS);
-        $maxA = $threshold;
-      }
+  for my $rule (@rules) {
+    my ($value, $comparator, $threshold, $target) = @$rule;
+    my $min_index = $value * 2;
+    my $max_index = $min_index + 1;
+    if ($comparator eq "<") {
+      DFS($target, @bounds[0..$min_index], $threshold - 1, @bounds[$max_index+1..$#bounds]);
+      $bounds[$min_index] = $threshold;
     } else {
-      if ($comparator eq "<") {
-        DFS($target, $minX, $maxX, $minM, $maxM, $minA, $maxA, $minS, $threshold - 1);
-        $minS = $threshold;
-      } else {
-        DFS($target, $minX, $maxX, $minM, $maxM, $minA, $maxA, $threshold + 1, $maxS);
-        $maxS = $threshold;
-      }
+      DFS($target, @bounds[0..$min_index-1], $threshold + 1, @bounds[$max_index..$#bounds]);
+      $bounds[$max_index] = $threshold;
     }
   }
-  DFS($else, $minX, $maxX, $minM, $maxM, $minA, $maxA, $minS, $maxS);
+  DFS($else, @bounds);
 }
 
-DFS("in", 1, 4000, 1, 4000, 1, 4000, 1, 4000);
 my $sum = 0;
-for ( @accepts ) {
-  my ($minX, $maxX, $minM, $maxM, $minA, $maxA, $minS, $maxS) = @{$_};
-  $sum += ($maxX - $minX + 1) * ($maxM - $minM + 1) * ($maxA - $minA + 1) * ($maxS - $minS + 1);
+if($part eq "1") {
+  for my $elfpart (@parts) {
+    my $next = "in";
+    while ($next ne "R" && $next ne "A") {
+      ($next) = process_workflow(\%workflows, $next, $elfpart);
+    }
+    if ($next eq "A") {
+      $sum += $elfpart->[0] + $elfpart->[1] + $elfpart->[2] + $elfpart->[3];
+    }
+  }
+} else {
+  DFS("in", 1, 4000, 1, 4000, 1, 4000, 1, 4000);
+  for ( @accepts ) {
+    my ($minX, $maxX, $minM, $maxM, $minA, $maxA, $minS, $maxS) = @{$_};
+    $sum += ($maxX - $minX + 1) * ($maxM - $minM + 1) * ($maxA - $minA + 1) * ($maxS - $minS + 1);
+  }
 }
 print("$sum\n");
