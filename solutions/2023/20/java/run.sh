@@ -1,3 +1,2 @@
 #!/bin/sh
-javac Main.java
-java Main "$@"
+javac Main.java && java Main "$@"

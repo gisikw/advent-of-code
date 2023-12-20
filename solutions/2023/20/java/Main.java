@@ -3,19 +3,15 @@ import java.util.*;
 import java.math.*;
 
 class Signal {
-  String from;
-  String to;
-  boolean high;
+  public String from;
+  public String to;
+  public boolean high;
 
   public Signal(String from, String to, boolean high) {
     this.from = from;
     this.to = to;
     this.high = high;
   }
-
-  public String from() { return from; }
-  public String to() { return to; }
-  public boolean high() { return high; }
 }
 
 abstract class Module {
@@ -29,7 +25,7 @@ abstract class Module {
     this.inputs = new ArrayList<String>();
   }
 
-  void processSignal(Signal s, Queue q) {}
+  void processSignal(Signal s, Queue<Signal> q) {}
 
   void registerOutput(String m) {
     outputs.add(m);
@@ -42,18 +38,21 @@ abstract class Module {
 
 class BroadcasterModule extends Module {
   public BroadcasterModule(String name) { super(name); }
-  void processSignal(Signal s, Queue q) {
+
+  void processSignal(Signal s, Queue<Signal> q) {
     for (String output : outputs) {
-      q.add(new Signal(name, output, s.high()));
+      q.add(new Signal(name, output, s.high));
     }
   }
 }
 
 class FlipFlopModule extends Module {
   boolean state = false;
+
   public FlipFlopModule(String name) { super(name); }
-  void processSignal(Signal s, Queue q) {
-    if (s.high()) return; 
+
+  void processSignal(Signal s, Queue<Signal> q) {
+    if (s.high) return; 
     this.state = !state;
     for (String output : outputs) {
       q.add(new Signal(name, output, state));
@@ -63,12 +62,14 @@ class FlipFlopModule extends Module {
 
 class ConjunctionModule extends Module {
   HashMap<String,Boolean> state;
+
   public ConjunctionModule(String name) { 
     super(name);
     this.state = new HashMap<String,Boolean>();
   }
-  void processSignal(Signal s, Queue q) {
-    state.put(s.from(), s.high());
+
+  void processSignal(Signal s, Queue<Signal> q) {
+    state.put(s.from, s.high);
     boolean allHigh = true;
     for (String input : this.inputs) {
       allHigh = allHigh && state.getOrDefault(input, false);
@@ -79,22 +80,66 @@ class ConjunctionModule extends Module {
   }
 }
 
-class VoidModule extends Module {
-  public VoidModule(String name) { super(name); }
+@FunctionalInterface
+interface SignalAction {
+  void perform(Signal signal);
 }
 
 public class Main {
-  static HashMap<String,Module> modules;
+  private static HashMap<String,Module> modules;
+  private static LinkedList<Signal> queue;
+  private static final String BUTTON = "button";
+  private static final String BROADCASTER = "broadcaster";
+  private static final String FLIP_FLOP_PREFIX = "%";
+  private static final String CONJUNCTION_PREFIX = "&";
+  private static final String[] COMPONENT_MODULES = {"mk", "fp", "xt", "zc"};
+  private static final String INVERTER_MODULE = "kl";
+
 
   public static void main(String[] args) throws Exception {
     modules = new HashMap<String,Module>();
-    Path filePath = Paths.get(args[0]);
-    List<String> lines = Files.readAllLines(filePath);
+    queue = new LinkedList<Signal>();
+    parseModules(args[0]);
+    if(args[1].equals("1")) runPart1();
+    else runPart2();
+  }
 
-    for (String line : lines) {
-      makeOrGet(line.split(" -> ")[0]);
+  static void runPart1() {
+    final int[] counters = {0, 0};
+    for (int i = 0; i < 1000; i++) pressButton(signal -> counters[signal.high ? 0 : 1]++);
+    System.out.println(counters[0] * counters[1]);
+  }
+
+  static void runPart2() {
+    HashMap<String, Integer> values = new HashMap<>();
+    for (String module : COMPONENT_MODULES) values.put(module, 0);
+    final int[] i = {1};
+    while (values.containsValue(0)) {
+      pressButton(signal -> {
+        if (signal.to.equals(INVERTER_MODULE) && values.containsKey(signal.from) && signal.high) {
+          values.put(signal.from, i[0]);
+        }
+      });
+      i[0]++;
     }
+    long result = 1;
+    for (String module : COMPONENT_MODULES) result *= values.get(module);
+    System.out.println(result);
+  }
 
+  static void pressButton(SignalAction action) {
+    queue.add(new Signal(BUTTON, BROADCASTER, false));
+    while (queue.peekFirst() != null) {
+      Signal s = queue.pop();
+      action.perform(s);
+      modules.get(s.to).processSignal(s, queue);
+    }
+  }
+
+  static void parseModules(String file) throws Exception {
+    Path filePath = Paths.get(file);
+    List<String> lines = Files.readAllLines(filePath);
+    for (String line : lines) makeOrGet(line.split(" -> ")[0]);
     for (String line : lines) {
       String[] sections = line.split(" -> ");
       Module srcModule = makeOrGet(sections[0]);
@@ -104,83 +149,33 @@ public class Main {
         dstModule.registerInput(sections[0].replace("%","").replace("&",""));
       }
     }
-
-    LinkedList<Signal> q = new LinkedList<Signal>();
-
-    int lows = 0;
-    int highs = 0;
-
-    if (args[1].equals("1")) {
-      for (int i = 0; i < 1000; i++) {
-        q.add(new Signal("button", "broadcaster", false));
-        while (q.peekFirst() != null) {
-          Signal s = q.pop();
-          if (s.high()) { highs++; } else { lows++; }
-          modules.get(s.to()).processSignal(s, q);
-        }
-      }
-      System.out.println(lows * highs);
-    } else {
-      long i = 1;
-
-      // These are the examples from my input that feed into the aggregator
-      long mk = 0; 
-      long fp = 0; 
-      long xt = 0; 
-      long zc = 0; 
-      while (mk == 0 || fp == 0 || xt == 0 || zc == 0) {
-        q.add(new Signal("button", "broadcaster", false));
-        while (q.peekFirst() != null) {
-          Signal s = q.pop();
-          if(s.to().equals("kl") && s.from().equals("mk") && s.high()) {
-            mk = i;
-          }
-          if(s.to().equals("kl") && s.from().equals("fp") && s.high()) {
-            fp = i;
-          }
-          if(s.to().equals("kl") && s.from().equals("xt") && s.high()) {
-            xt = i;
-          }
-          if(s.to().equals("kl") && s.from().equals("zc") && s.high()) {
-            zc = i;
-          }
-          modules.get(s.to()).processSignal(s, q);
-        }
-        i++;
-      }
-      System.out.println(lcm(lcm(lcm(mk,fp),xt),zc));
-    }
-  }
-
-  // LCM lovingly swiped from the internet
-  public static long lcm(long number1, long number2) {
-    if (number1 == 0 || number2 == 0) {
-        return 0;
-    }
-    long absNumber1 = Math.abs(number1);
-    long absNumber2 = Math.abs(number2);
-    long absHigherNumber = Math.max(absNumber1, absNumber2);
-    long absLowerNumber = Math.min(absNumber1, absNumber2);
-    long lcm = absHigherNumber;
-    while (lcm % absLowerNumber != 0) {
-        lcm += absHigherNumber;
-    }
-    return lcm;
   }
 
   static Module makeOrGet(String name) {
-    String cleanName = name.replace("%","").replace("&","");
+    String cleanName = cleanModuleName(name);
     if (!modules.containsKey(cleanName)) {
-      if (name.equals("broadcaster")) {
-        modules.put(name, new BroadcasterModule(cleanName));
-      } else if (name.startsWith("%")) {
-        modules.put(cleanName, new FlipFlopModule(cleanName));
-      } else if (name.startsWith("&")) {
-        modules.put(cleanName, new ConjunctionModule(cleanName));
-      } else {
-        modules.put(cleanName, new VoidModule(cleanName));
+      switch(getModuleType(name)) {
+        case FLIP_FLOP_PREFIX:
+          modules.put(cleanName, new FlipFlopModule(cleanName));
+          break;
+        case CONJUNCTION_PREFIX:
+          modules.put(cleanName, new ConjunctionModule(cleanName));
+          break;
+        default:
+          modules.put(cleanName, new BroadcasterModule(cleanName));
       }
     }
     return modules.get(cleanName);
+  }
+
+  static String cleanModuleName(String name) {
+    return name.replace(FLIP_FLOP_PREFIX, "")
+               .replace(CONJUNCTION_PREFIX, "");
+  }
+
+  static String getModuleType(String name) {
+    if (name.startsWith(FLIP_FLOP_PREFIX)) return FLIP_FLOP_PREFIX;
+    if (name.startsWith(CONJUNCTION_PREFIX)) return CONJUNCTION_PREFIX;
+    return BROADCASTER;
   }
 }
