@@ -101,6 +101,8 @@ languages:
   tcl:
     container: esolang/tcl
     run: tclsh solution.tcl
+  uiua:
+    run: uiua solution.ua
   v:
     run: v run solution.v
   zig:
