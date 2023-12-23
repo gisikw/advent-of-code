@@ -1,0 +1,6 @@
+official:
+  part1: "d254c8a084d4545bd80577481aa03076"
+  part2: ""
+examples:
+  - input: example.txt
+    part1: "94"
