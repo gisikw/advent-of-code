@@ -106,5 +106,4 @@ languages:
   v:
     run: v run solution.v
   zig:
-    container: alpine:latest
     run: /bin/sh run.sh
