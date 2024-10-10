@@ -30,23 +30,28 @@ main() {
 _prepare_docker_container() {
   local dockerfile_path="${local_path}/languages/${AOC_LANG}/Dockerfile"
   local docker_image_name=$(yq eval ".languages.${AOC_LANG}.container" "$local_path/config.yml")
-  local frozen_image_file="${local_path}/solutions/$AOC_YEAR/$AOC_DAY/$AOC_LANG/.docker-image-id"
+  local docker_ref_file="${local_path}/solutions/$AOC_YEAR/$AOC_DAY/$AOC_LANG/.docker-image-ref"
 
   if [[ -f "$dockerfile_path" ]]; then
     local dockerfile_md5sum=$(md5sum "$dockerfile_path" | awk '{print $1}')
     local docker_tag="aoc_${AOC_LANG}:${dockerfile_md5sum}"
-
     if [[ "$(docker images -q $docker_tag 2> /dev/null)" == "" ]]; then
+      echo "Dockerfile has changed or new build required. Building image..."
       docker build -t $docker_tag -f "$dockerfile_path" .
     fi
-    docker_image_id=$docker_tag
-  elif [[ -f "$frozen_image_file" ]]; then
-    docker_image_id=$(cat $frozen_image_file)
+    docker_image_ref=$docker_tag
+  elif [[ -f "$docker_ref_file" ]]; then
+    docker_image_ref=$(cat $docker_ref_file)
+    if [[ "$(docker images -q $docker_image_ref 2> /dev/null)" == "" ]]; then
+      echo "Docker image not found locally. Pulling from registry..."
+      docker pull $docker_image_ref
+    fi
   else
+    echo "No cached image reference found. Pulling base image from registry..."
     docker_image_name=$(yq eval ".languages.$AOC_LANG.container" $local_path/config.yml)
     docker pull $docker_image_name
-    docker_image_id=$(docker inspect --format="{{.Id}}" $docker_image_name)
-    echo $docker_image_id > $frozen_image_file
+    docker_image_ref=$(docker inspect --format '{{index .RepoDigests 0}}' "$docker_image_name")
+    echo $docker_image_ref > $docker_ref_file
   fi
 }
 
@@ -61,7 +66,7 @@ _execute_solution() {
     -v $problem_path:/problem \
     -v $solution_path:/solution \
     -w /solution \
-    "$docker_image_id" $run_command /problem/${example_name}.txt ${part:-1}
+    "$docker_image_ref" $run_command /problem/${example_name}.txt ${part:-1}
 }
 
 _process_example_output() {
