@@ -1,26 +1,19 @@
 package main
 
 import (
-    "bufio"
-    "fmt"
-    "os"
-    "strconv"
+	"fmt"
+	"os"
+	"strconv"
+	"strings"
 )
 
 func main() {
-    args := os.Args[1:]
-    inputFile := args[0]
-    part, _ := strconv.Atoi(args[1])
+	args := os.Args[1:]
+	inputFile := args[0]
 
-    file, _ := os.Open(inputFile)
-    defer file.Close()
+	content, _ := os.ReadFile(inputFile)
+	part, _ := strconv.Atoi(args[1])
+	lines := strings.Split(strings.TrimSpace(string(content)), "\n")
 
-    scanner := bufio.NewScanner(file)
-    linesCount := 0
-    for scanner.Scan() {
-        linesCount++
-    }
-
-    fmt.Printf("Received %d lines of input for part %d\n", linesCount, part)
+	fmt.Printf("Received %d lines of input for part %d\n", len(lines), part)
 }
-
