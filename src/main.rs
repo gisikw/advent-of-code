@@ -1,4 +1,5 @@
 use clap::{Parser,Subcommand};
+use dotenv::dotenv;
 mod commands;
 mod utils;
 
@@ -19,13 +20,17 @@ enum Commands {
     #[command(about = "Clear the year, day, and language settings")]
     Clear,
 
+    #[command(about = "Download the input for the current day")]
     Fetch {
-        #[arg(trailing_var_arg = true)]
-        extra_args: Vec<String>,
+        year: Option<usize>,
+        day: Option<usize>,
     },
+
+    #[command(about = "Create a new solution directory")]
     New {
-        #[arg(trailing_var_arg = true)]
-        extra_args: Vec<String>,
+        year: usize,
+        day: usize,
+        language: Option<String>,
     },
 
     #[command(about = "Rebuild the aoc binary")]
@@ -64,12 +69,13 @@ enum Commands {
 }
 
 fn main() {
+    dotenv().ok();
     let cli = Cli::parse();
 
     match &cli.command {
         Commands::Add { extra_args } => commands::bash::run("add", extra_args),
-        Commands::Fetch { extra_args } => commands::bash::run("fetch", extra_args),
-        Commands::New { extra_args } => commands::bash::run("new", extra_args),
+        Commands::Fetch { year, day } => commands::fetch::run(year, day),
+        Commands::New { year, day, language } => commands::new::run(*year, *day, language),
         Commands::Rebuild => commands::rebuild::run(),
         Commands::Clear => commands::clear::run(),
         Commands::Run { extra_args } => commands::bash::run("run", extra_args),
