@@ -1,5 +1,6 @@
 use clap::{Parser,Subcommand};
 mod commands;
+mod utils;
 
 #[derive(Parser, Debug)]
 #[command(version, name = "aoc")]
@@ -14,6 +15,10 @@ enum Commands {
         #[arg(trailing_var_arg = true)]
         extra_args: Vec<String>,
     },
+
+    #[command(about = "Clear the year, day, and language settings")]
+    Clear,
+
     Fetch {
         #[arg(trailing_var_arg = true)]
         extra_args: Vec<String>,
@@ -22,11 +27,10 @@ enum Commands {
         #[arg(trailing_var_arg = true)]
         extra_args: Vec<String>,
     },
+
+    #[command(about = "Rebuild the aoc binary")]
     Rebuild,
-    Reset {
-        #[arg(trailing_var_arg = true)]
-        extra_args: Vec<String>,
-    },
+
     Run {
         #[arg(trailing_var_arg = true)]
         extra_args: Vec<String>,
@@ -35,10 +39,19 @@ enum Commands {
         #[arg(trailing_var_arg = true)]
         extra_args: Vec<String>,
     },
+
+    #[command(about = "Set the year, day, and language settings")]
     Set {
-        #[arg(trailing_var_arg = true)]
-        extra_args: Vec<String>,
+        #[arg(help = "The year to set (e.g. 2023)")]
+        year: usize,
+
+        #[arg(help = "The day to set (e.g. 3)")]
+        day: usize,
+
+        #[arg(help = "The language to set (e.g. rust)")]
+        language: Option<String>,
     },
+
     Test {
         #[arg(trailing_var_arg = true)]
         extra_args: Vec<String>,
@@ -57,10 +70,10 @@ fn main() {
         Commands::Fetch { extra_args } => commands::bash::run("fetch", extra_args),
         Commands::New { extra_args } => commands::bash::run("new", extra_args),
         Commands::Rebuild => commands::rebuild::run(),
-        Commands::Reset { extra_args } => commands::bash::run("reset", extra_args),
+        Commands::Clear => commands::clear::run(),
         Commands::Run { extra_args } => commands::bash::run("run", extra_args),
         Commands::Save { extra_args } => commands::bash::run("save", extra_args),
-        Commands::Set { extra_args } => commands::bash::run("set", extra_args),
+        Commands::Set { year, day, language } => commands::set::run(*year, *day, language),
         Commands::Test { extra_args } => commands::bash::run("test", extra_args),
         Commands::Unused { extra_args } => commands::bash::run("unused", extra_args),
     }
