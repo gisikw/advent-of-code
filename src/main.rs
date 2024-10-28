@@ -56,9 +56,10 @@ enum Commands {
         #[arg(trailing_var_arg = true)]
         extra_args: Vec<String>,
     },
+
+    #[command(about = "Show supported languages that have not been used, optionally filtered by year")]
     Unused {
-        #[arg(trailing_var_arg = true)]
-        extra_args: Vec<String>,
+        year: Option<usize>,
     },
 }
 
@@ -75,6 +76,6 @@ fn main() {
         Commands::Save { extra_args } => commands::bash::run("save", extra_args),
         Commands::Set { year, day, language } => commands::set::run(*year, *day, language),
         Commands::Test { extra_args } => commands::bash::run("test", extra_args),
-        Commands::Unused { extra_args } => commands::bash::run("unused", extra_args),
+        Commands::Unused { year } => commands::unused::run(year),
     }
 }
