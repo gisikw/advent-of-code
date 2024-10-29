@@ -1,4 +1,4 @@
-use clap::{Parser,Subcommand};
+use clap::{Parser,Subcommand,ValueHint};
 use dotenv::dotenv;
 mod commands;
 mod utils;
@@ -12,9 +12,11 @@ struct Cli {
 }
 #[derive(Subcommand, Debug)]
 enum Commands {
+    #[command(about = "Add an example input for the current puzzle, optionally with expected answers")]
     Add {
-        #[arg(trailing_var_arg = true)]
-        extra_args: Vec<String>,
+        example_name: String,
+        part1_answer: Option<String>,
+        part2_answer: Option<String>,
     },
 
     #[command(about = "Clear the year, day, and language settings")]
@@ -40,9 +42,15 @@ enum Commands {
         #[arg(trailing_var_arg = true)]
         extra_args: Vec<String>,
     },
+
+    #[command(about = "Save a solution to the current day's solutions file")]
     Save {
-        #[arg(trailing_var_arg = true)]
-        extra_args: Vec<String>,
+        #[arg(
+            help = "Arguments: [example] [part] <answer>",
+            value_hint = ValueHint::Other,
+            trailing_var_arg = true
+        )]
+        args: Vec<String>,
     },
 
     #[command(about = "Set the year, day, and language settings")]
@@ -73,15 +81,50 @@ fn main() {
     let cli = Cli::parse();
 
     match &cli.command {
-        Commands::Add { extra_args } => commands::bash::run("add", extra_args),
+        Commands::Add { example_name, part1_answer, part2_answer } => commands::add::run(example_name, part1_answer, part2_answer),
         Commands::Fetch { year, day } => commands::fetch::run(year, day),
         Commands::New { year, day, language } => commands::new::run(*year, *day, language),
         Commands::Rebuild => commands::rebuild::run(),
         Commands::Clear => commands::clear::run(),
         Commands::Run { extra_args } => commands::bash::run("run", extra_args),
-        Commands::Save { extra_args } => commands::bash::run("save", extra_args),
+        Commands::Save { args } => {
+            let (example_name, part, answer) = parse_save_args(args);
+            commands::save::run(example_name, part, answer);
+        },
         Commands::Set { year, day, language } => commands::set::run(*year, *day, language),
         Commands::Test { extra_args } => commands::bash::run("test", extra_args),
         Commands::Unused { year } => commands::unused::run(year),
     }
+}
+
+fn parse_save_args(args: &Vec<String>) -> (Option<String>, Option<usize>, String) {
+    let mut example_name = None;
+    let mut part = None;
+    let answer;
+
+    match args.len() {
+        1 => {
+            answer = args[0].clone();
+        }
+        2 => {
+            if let Ok(parsed_part) = args[0].parse::<usize>() {
+                part = Some(parsed_part);
+                answer = args[1].clone();
+            } else {
+                example_name = Some(args[0].clone());
+                answer = args[1].clone();
+            }
+        }
+        3 => {
+            example_name = Some(args[0].clone());
+            part = args[1].parse::<usize>().ok();
+            answer = args[2].clone();
+        }
+        _ => {
+            eprintln!("Error: Incorrect number of arguments provided to save command.");
+            std::process::exit(1);
+        }
+    }
+
+    (example_name, part, answer)
 }
