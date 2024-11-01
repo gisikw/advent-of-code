@@ -105,5 +105,7 @@ languages:
     run: uiua solution.ua
   v:
     run: v run solution.v
+  wren:
+    run: wren_cli solution.wren
   zig:
     run: /bin/sh run.sh
