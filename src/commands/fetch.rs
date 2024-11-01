@@ -8,6 +8,10 @@ pub fn run(year: &Option<usize>, day: &Option<usize>) {
     let results = utils::resolve_aoc_settings(year.clone(), day.clone(), None);
     let (resolved_year, resolved_day, _) = results;
 
+    if resolved_year == 9999 {
+        return
+    }
+
     let url = format!("https://adventofcode.com/{}/day/{}/input", resolved_year, resolved_day);
 
     let aoc_session = match env::var("AOC_SESSION") {

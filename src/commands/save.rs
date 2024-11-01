@@ -20,8 +20,10 @@ pub fn run(example_name: Option<String>, part: Option<usize>, answer: String) {
 
     if example_name.is_none() {
         add_official_answer(&mut solutions_data, resolved_part, &answer);
+        println!("Official solution saved.");
     } else {
         add_example_answer(&mut solutions_data, &example_name.unwrap(), resolved_part, &answer);
+        println!("Example answer saved.");
     }
 
     let yaml_data = serde_yaml::to_string(&solutions_data).expect("Failed to serialize solutions data");

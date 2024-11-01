@@ -266,51 +266,11 @@ impl RunContext {
             return
         }
 
-        let solutions_file_path = Path::new(&self.settings.problem_path).join("solutions.yml");
-        let mapping;
-        if &self.settings.example_name == "input" {
-            mapping = self.solutions_data.as_mut().unwrap()
-                .as_mapping_mut()
-                .expect("Expected solutions data to be a mapping")
-                .entry(serde_yaml::Value::String("official".to_string()))
-                .or_insert_with(|| Value::Mapping(Mapping::new()))
-                .as_mapping_mut()
-                .expect("Expected official solutions to be a mapping")
-        } else {
-            let examples = self.solutions_data.as_mut().unwrap()
-                .as_mapping_mut()
-                .expect("Expected solutions data to be a mapping")
-                .entry(Value::String("examples".to_string()))
-                .or_insert_with(|| Value::Sequence(Sequence::new()))
-                .as_sequence_mut()
-                .expect("Expected examples to be a mapping");
-
-            mapping = if let Some(example) = examples.iter_mut().find(|ex| {
-                ex.as_mapping()
-                    .and_then(|map| map.get(&Value::String("input".to_string())))
-                    == Some(&Value::String(format!("{}.txt", &self.settings.example_name)))
-            }) {
-                example.as_mapping_mut().expect("Expected example to be a mapping")
-            } else {
-                let new_example = Value::Mapping(Mapping::new());
-                examples.push(new_example);
-                examples.last_mut().unwrap().as_mapping_mut().expect("Expected example to be a mapping")
-            }
-        };
-
-        let answer = if &self.settings.example_name == "input" {
-            format!("{:x}", md5::compute(self.result.as_ref().unwrap()))
-        } else {
+        crate::commands::save::run(
+            Some(self.settings.example_name.clone()), 
+            Some(self.settings.part), 
             self.result.as_ref().unwrap().to_string()
-        };
-
-        mapping.insert(
-            Value::String(format!("part{}", &self.settings.part)),
-            Value::String(answer)
         );
-
-        let yaml_data = serde_yaml::to_string(&self.solutions_data).expect("Failed to serialize solutions data");
-        fs::write(&solutions_file_path, yaml_data).expect("Failed to write solutions file");
     }
 }
 

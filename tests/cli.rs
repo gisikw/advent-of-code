@@ -25,6 +25,7 @@ fn execute_language_template(lang: &str) {
         output
     );
 
+    fs::create_dir_all("./problems/9999/25").expect("Failed to create problem directory");
     let input_file = "./problems/9999/25/input.txt";
     let text = concat!(
         "line 1\n",

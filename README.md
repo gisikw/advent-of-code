@@ -24,6 +24,9 @@ folder is created to hold the official inputs and any example inputs you choose
 to add. The expected outputs are saved in a solutions.yml file which stores the
 answer, or an md5 hash of the answer for official inputs.
 
+Note that official inputs are part of the .gitignore, and are not committed to
+the repository.
+
 The runner can reflect on the last line written to STDOUT and give feedback
 acccordingly:
 
@@ -34,7 +37,7 @@ acccordingly:
 
 ./aoc run example
 # abcde
-# Would you like to save this result? Press [Y] to save, any other key to skip.
+# Do you want to save this solution? [y/N]: y
 # Example answer saved.
 
 ./aoc run example
@@ -42,10 +45,20 @@ acccordingly:
 # ❌ Incorrect answer. Expected: abcde
 
 ./aoc run 2
+# 12000
+# Do you want to submit this answer? [y/N]: y
+# ⬆️  Answer is too low.
+
+./aoc run 2
+# 12000
+# Do you want to submit this answer? [y/N]: y
+# ⏱ Please wait 30s before submitting another answer.
+
+./aoc run 2
 # 12345
-# Would you like to submit this result? Press [Y] to submit, any other key to
+# Do you want to submit this answer? [y/N]: y
 # ✅ Correct answer submitted!
-# Would you like to save this result? Press [Y] to save, any other key to skip.
+# Would you like to save this result? [y/N]: y
 # Official answer saved.
 ```
 
@@ -59,19 +72,21 @@ The `config.yml` file has a list of supported languages with Docker image and
 tags, along with a default run command, to which the input file and part
 argument are applied.
 
-The first time a solution is run, the specific docker image id is frozen via a
-`.docker-image-id` file in the particular solution directory, thus ensuring the
-solution can always be run in the environment for which it was built.
+The first time a solution is run, the specific docker image ref is frozen via a
+`.docker-image-ref` file in the particular solution directory, thus ensuring
+the solution can always be run in the environment for which it was built.
 
 # Language Templates
 
 Each language template provides a scaffold that can output the number of lines
-from an input file, along with the problem part that was passed in. We rely on
-STDIO to make things behave consistently, and the `test/` folder ensures that
-all language templates return the same output for a sample input file when
-invoked the same way.
+from an input file, along with the problem part that was passed in.
 
-In the cases of languages requiring build infrastructure, or esoteric languages
-that don't support file i/o or argv, the language template may include a
-./run.sh command that accepts the inputfile and part args, but can bootstrap
-the specific implementation.
+Every solution is expected to accept an input file and a part argument, and the
+scaffolds are verified by the test suite in the `tests/` folder. The last line
+written to STDOUT is expected to be the answer to the problem.
+
+In cases of languages requiring build infrastructure, or older/esoteric
+languages which don't support file reads or interaction via stdio, the language
+template may include a ./run.sh command that receives the input file and part
+as arguments. This script can then do the appropriate bootstrapping of the main
+implementation.
