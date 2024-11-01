@@ -1,9 +1,8 @@
-use crossterm::{event, terminal};
 use std::path::Path;
 use std::fs;
 use crate::utils::{self, LanguageConfig};
 use std::process::{Command, Stdio, exit};
-use std::io::{self, BufRead, Write};
+use std::io::{self, BufRead};
 use serde_yaml::{Value, Mapping, Sequence};
 use reqwest::blocking::{Client};
 use std::collections::HashMap;
@@ -11,8 +10,8 @@ use std::env;
 use regex::Regex;
 use md5;
 
-pub fn run(example_name: Option<String>, part: Option<usize>) {
-    let mut context = RunContext::new(example_name, part);
+pub fn run(example_name: Option<String>, part: Option<usize>, confirmation: Option<bool>) {
+    let mut context = RunContext::new(example_name, part, confirmation);
 
     context.prepare_docker_container();
     context.execute_solution();
@@ -33,6 +32,7 @@ struct Settings {
     example_name: String,
     part: usize,
     language_config: LanguageConfig,
+    confirmation: Option<bool>,
 }
 
 struct RunContext {
@@ -43,7 +43,7 @@ struct RunContext {
 }
 
 impl RunContext {
-    fn new(example_name: Option<String>, part: Option<usize>) -> Self {
+    fn new(example_name: Option<String>, part: Option<usize>, confirmation: Option<bool>) -> Self {
         let (year, day, lang) = utils::resolve_aoc_settings(None, None, None);
         RunContext {
             settings: Settings {
@@ -55,6 +55,7 @@ impl RunContext {
                 language_config: utils::get_language_config(&lang).unwrap(),
                 example_name: example_name.unwrap_or("input".to_string()),
                 part: part.unwrap_or(1),
+                confirmation: confirmation,
             },
             docker_image_ref: None,
             result: None,
@@ -196,7 +197,10 @@ impl RunContext {
         if &self.settings.example_name != "input" {
             return true;
         }
-        if !confirm("Do you want to submit this answer?") {
+        let confirmation = self.settings.confirmation.unwrap_or_else(|| {
+            utils::confirm("Do you want to submit this answer?")
+        });
+        if !confirmation {
             return false;
         }
 
@@ -255,7 +259,12 @@ impl RunContext {
     }
 
     fn save_solution(&mut self) {
-        confirm("Do you want to save this solution?");
+        let confirmation = self.settings.confirmation.unwrap_or_else(|| {
+            utils::confirm("Do you want to save this solution?")
+        });
+        if !confirmation {
+            return
+        }
 
         let solutions_file_path = Path::new(&self.settings.problem_path).join("solutions.yml");
         let mapping;
@@ -384,21 +393,4 @@ fn create_docker_ref_file(docker_ref_file: &Path, lang: &String) -> String {
     let image_ref = String::from_utf8_lossy(&output.stdout).to_string();
     fs::write(docker_ref_file, &image_ref).expect("Failed to write Docker image reference");
     image_ref.trim_end().to_string()
-}
-
-fn confirm(prompt: &str) -> bool {
-    terminal::enable_raw_mode().expect("Failed to enable raw mode");
-    print!("{} [y/N]: ", prompt);
-    io::stdout().flush().expect("Failed to flush stdout");
-
-    let mut result = false;
-    if let Ok(event::Event::Key(key_event)) = event::read() {
-        match key_event.code {
-            event::KeyCode::Char('y') => result = true,
-            _ => (),
-        }
-    }
-    terminal::disable_raw_mode().expect("Failed to disable raw mode");
-    println!();
-    result
 }

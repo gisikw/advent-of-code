@@ -35,6 +35,9 @@ enum Commands {
         year: usize,
         day: usize,
         language: Option<String>,
+
+        #[arg(short = 'y', long = "yes")]
+        yes: bool,
     },
 
     #[command(about = "Rebuild the aoc binary")]
@@ -44,6 +47,12 @@ enum Commands {
     Run {
         example_name: Option<String>,
         part: Option<usize>,
+
+        #[arg(short = 'y', long = "yes", conflicts_with = "no")]
+        yes: bool,
+
+        #[arg(short = 'n', long = "no", conflicts_with = "yes")]
+        no: bool,
     },
 
     #[command(about = "Save a solution to the current day's solutions file")]
@@ -68,9 +77,9 @@ enum Commands {
         language: Option<String>,
     },
 
+    #[command(about = "Run tests on the aoc binary, optionally for a given language")]
     Test {
-        #[arg(trailing_var_arg = true)]
-        extra_args: Vec<String>,
+        language: Option<String>,
     },
 
     #[command(about = "Show supported languages that have not been used, optionally filtered by year")]
@@ -87,19 +96,24 @@ fn main() {
         Commands::Add { example_name, part1_answer, part2_answer } => commands::add::run(example_name, part1_answer, part2_answer),
         Commands::Fetch { year, day } => commands::fetch::run(year, day),
         Commands::Demo => commands::demo::run(),
-        Commands::New { year, day, language } => commands::new::run(*year, *day, language),
+        Commands::New { year, day, language, yes } => commands::new::run(*year, *day, language, yes),
         Commands::Rebuild => commands::rebuild::run(),
         Commands::Clear => commands::clear::run(),
-        Commands::Run { example_name, part } => {
+        Commands::Run { example_name, part, yes, no } => {
+            let confirmation = match(yes, no) {
+                (true, false) => Some(true),
+                (false, true) => Some(false),
+                _ => None,
+            };
             let (resolved_example_name, resolved_part) = parse_run_args(example_name, part);
-            commands::run::run(resolved_example_name, resolved_part);
+            commands::run::run(resolved_example_name, resolved_part, confirmation);
         },
         Commands::Save { args } => {
             let (example_name, part, answer) = parse_save_args(args);
             commands::save::run(example_name, part, answer);
         },
         Commands::Set { year, day, language } => commands::set::run(*year, *day, language),
-        Commands::Test { extra_args } => commands::bash::run("test", extra_args),
+        Commands::Test { language } => commands::test::run(language),
         Commands::Unused { year } => commands::unused::run(year),
     }
 }

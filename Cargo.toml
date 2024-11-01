@@ -17,3 +17,9 @@ serde_yaml = "0.9.34"
 [[bin]]
 name = "aoc"
 path = "src/main.rs"
+
+[dev-dependencies]
+paste = "1.0.15"
+
+[build-dependencies]
+serde_yaml = "0.9.34"

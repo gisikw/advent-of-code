@@ -1,5 +1,4 @@
 pub mod add;
-pub mod bash;
 pub mod clear;
 pub mod demo;
 pub mod fetch;
@@ -8,4 +7,5 @@ pub mod rebuild;
 pub mod run;
 pub mod save;
 pub mod set;
+pub mod test;
 pub mod unused;

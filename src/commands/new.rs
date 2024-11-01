@@ -3,7 +3,7 @@ use crate::commands;
 use std::fs;
 use std::path::Path;
 
-pub fn run(year: usize, day: usize, language: &Option<String>) {
+pub fn run(year: usize, day: usize, language: &Option<String>, yes: &bool) {
     commands::set::run(year, day, language);
 
     let results = utils::resolve_aoc_settings(Some(year), Some(day), language.clone());
@@ -13,7 +13,7 @@ pub fn run(year: usize, day: usize, language: &Option<String>) {
         "Create new solution in ./solutions/{}/{:02}/{}?",
         resolved_year, resolved_day, resolved_lang
     );
-    if !utils::confirm(&create_message) {
+    if !utils::confirm(&create_message) && !yes {
         println!("Aborted");
         return;
     }
@@ -26,7 +26,7 @@ pub fn run(year: usize, day: usize, language: &Option<String>) {
     utils::copy_dir_all(&Path::new(&template_path), &Path::new(&target_path)).expect("Failed to copy template to solution directory");
 
     let fetch_message = "Solution created. Would you like to fetch the input?";
-    if utils::confirm(&fetch_message) {
+    if utils::confirm(&fetch_message) && !yes {
         commands::fetch::run(&Some(resolved_year), &Some(resolved_day));
     }
 }
