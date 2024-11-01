@@ -14,10 +14,10 @@ struct Config {
     languages: HashMap<String, LanguageConfig>,
 }
 
-#[derive(Debug, Deserialize)]
-struct LanguageConfig {
-    container: Option<String>,
-    run: String,
+#[derive(Debug, Deserialize,Clone)]
+pub struct LanguageConfig {
+    pub container: Option<String>,
+    pub run: String,
 }
 
 pub fn get_aoc_tempfile_path() -> PathBuf {
@@ -30,6 +30,14 @@ pub fn get_supported_languages() -> Vec<String> {
     let config: Config = serde_yaml::from_str(&config_content).unwrap();
 
     config.languages.keys().cloned().collect::<Vec<String>>()
+}
+
+pub fn get_language_config(lang: &str) -> Option<LanguageConfig> {
+    let config_path = Path::new("config.yml");
+    let config_content = fs::read_to_string(config_path).unwrap();
+    let config: Config = serde_yaml::from_str(&config_content).unwrap();
+
+    config.languages.get(lang).cloned()
 }
 
 pub fn resolve_aoc_settings(

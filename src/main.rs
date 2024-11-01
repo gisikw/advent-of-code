@@ -22,6 +22,8 @@ enum Commands {
     #[command(about = "Clear the year, day, and language settings")]
     Clear,
 
+    Demo,
+
     #[command(about = "Download the input for the current day")]
     Fetch {
         year: Option<usize>,
@@ -38,9 +40,10 @@ enum Commands {
     #[command(about = "Rebuild the aoc binary")]
     Rebuild,
 
+    #[command(about = "Run a solution for the current day, optionally for a specific input and part")]
     Run {
-        #[arg(trailing_var_arg = true)]
-        extra_args: Vec<String>,
+        example_name: Option<String>,
+        part: Option<usize>,
     },
 
     #[command(about = "Save a solution to the current day's solutions file")]
@@ -83,10 +86,14 @@ fn main() {
     match &cli.command {
         Commands::Add { example_name, part1_answer, part2_answer } => commands::add::run(example_name, part1_answer, part2_answer),
         Commands::Fetch { year, day } => commands::fetch::run(year, day),
+        Commands::Demo => commands::demo::run(),
         Commands::New { year, day, language } => commands::new::run(*year, *day, language),
         Commands::Rebuild => commands::rebuild::run(),
         Commands::Clear => commands::clear::run(),
-        Commands::Run { extra_args } => commands::bash::run("run", extra_args),
+        Commands::Run { example_name, part } => {
+            let (resolved_example_name, resolved_part) = parse_run_args(example_name, part);
+            commands::run::run(resolved_example_name, resolved_part);
+        },
         Commands::Save { args } => {
             let (example_name, part, answer) = parse_save_args(args);
             commands::save::run(example_name, part, answer);
@@ -127,4 +134,13 @@ fn parse_save_args(args: &Vec<String>) -> (Option<String>, Option<usize>, String
     }
 
     (example_name, part, answer)
+}
+
+fn parse_run_args(example_name: &Option<String>, part: &Option<usize>) -> (Option<String>, Option<usize>) {
+    if let Some(example_name) = example_name {
+        if let Ok(parsed_part) = example_name.parse::<usize>() {
+            return (None, Some(parsed_part));
+        }
+    }
+    (example_name.clone(), part.clone())
 }
