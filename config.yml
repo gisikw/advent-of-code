@@ -51,6 +51,8 @@ languages:
   lua:
     container: alpinelinux/lua-turbo
     run: lua solution.lua
+  miniscript:
+    run: miniscript solution.ms
   nim:
     container: nimlang/nim
     run: /bin/sh run.sh
@@ -107,5 +109,7 @@ languages:
     run: v run solution.v
   wren:
     run: wren_cli solution.wren
+  yasl:
+    run: yasl solution.yasl
   zig:
     run: /bin/sh run.sh

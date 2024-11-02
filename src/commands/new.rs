@@ -26,7 +26,7 @@ pub fn run(year: usize, day: usize, language: &Option<String>, yes: &bool) {
     utils::copy_dir_all(&Path::new(&template_path), &Path::new(&target_path)).expect("Failed to copy template to solution directory");
 
     let fetch_message = "Solution created. Would you like to fetch the input?";
-    if utils::confirm(&fetch_message) && !yes {
+    if utils::confirm(&fetch_message) || (*yes && resolved_year != 9999) {
         commands::fetch::run(&Some(resolved_year), &Some(resolved_day));
     }
 }
