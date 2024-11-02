@@ -1,4 +1,6 @@
 languages:
+  ada:
+    run : /bin/sh run.sh
   bash:
     container: bash:latest
     run: bash solution.sh
