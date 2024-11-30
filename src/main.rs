@@ -1,4 +1,4 @@
-use clap::{Parser,Subcommand,ValueHint};
+use clap::{Parser, Subcommand, ValueHint};
 use dotenv::dotenv;
 mod commands;
 mod utils;
@@ -12,7 +12,9 @@ struct Cli {
 }
 #[derive(Subcommand, Debug)]
 enum Commands {
-    #[command(about = "Add an example input for the current puzzle, optionally with expected answers")]
+    #[command(
+        about = "Add an example input for the current puzzle, optionally with expected answers"
+    )]
     Add {
         example_name: String,
         part1_answer: Option<String>,
@@ -43,7 +45,9 @@ enum Commands {
     #[command(about = "Rebuild the aoc binary")]
     Rebuild,
 
-    #[command(about = "Run a solution for the current day, optionally for a specific input and part")]
+    #[command(
+        about = "Run a solution for the current day, optionally for a specific input and part"
+    )]
     Run {
         example_name: Option<String>,
         part: Option<usize>,
@@ -82,7 +86,9 @@ enum Commands {
         language: Option<String>,
     },
 
-    #[command(about = "Show supported languages that have not been used, optionally filtered by year")]
+    #[command(
+        about = "Show supported languages that have not been used, optionally filtered by year"
+    )]
     Unused {
         year: Option<usize>,
     },
@@ -93,26 +99,44 @@ fn main() {
     let cli = Cli::parse();
 
     match &cli.command {
-        Commands::Add { example_name, part1_answer, part2_answer } => commands::add::run(example_name, part1_answer, part2_answer),
+        Commands::Add {
+            example_name,
+            part1_answer,
+            part2_answer,
+        } => commands::add::run(example_name, part1_answer, part2_answer),
         Commands::Fetch { year, day } => commands::fetch::run(year, day),
         Commands::Demo => commands::demo::run(),
-        Commands::New { year, day, language, yes } => commands::new::run(*year, *day, language, yes),
+        Commands::New {
+            year,
+            day,
+            language,
+            yes,
+        } => commands::new::run(*year, *day, language, yes),
         Commands::Rebuild => commands::rebuild::run(),
         Commands::Clear => commands::clear::run(),
-        Commands::Run { example_name, part, yes, no } => {
-            let confirmation = match(yes, no) {
+        Commands::Run {
+            example_name,
+            part,
+            yes,
+            no,
+        } => {
+            let confirmation = match (yes, no) {
                 (true, false) => Some(true),
                 (false, true) => Some(false),
                 _ => None,
             };
             let (resolved_example_name, resolved_part) = parse_run_args(example_name, part);
             commands::run::run(resolved_example_name, resolved_part, confirmation);
-        },
+        }
         Commands::Save { args } => {
             let (example_name, part, answer) = parse_save_args(args);
             commands::save::run(example_name, part, answer);
-        },
-        Commands::Set { year, day, language } => commands::set::run(*year, *day, language),
+        }
+        Commands::Set {
+            year,
+            day,
+            language,
+        } => commands::set::run(*year, *day, language),
         Commands::Test { language } => commands::test::run(language),
         Commands::Unused { year } => commands::unused::run(year),
     }
@@ -150,7 +174,10 @@ fn parse_save_args(args: &Vec<String>) -> (Option<String>, Option<usize>, String
     (example_name, part, answer)
 }
 
-fn parse_run_args(example_name: &Option<String>, part: &Option<usize>) -> (Option<String>, Option<usize>) {
+fn parse_run_args(
+    example_name: &Option<String>,
+    part: &Option<usize>,
+) -> (Option<String>, Option<usize>) {
     if let Some(example_name) = example_name {
         if let Ok(parsed_part) = example_name.parse::<usize>() {
             return (None, Some(parsed_part));
