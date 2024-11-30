@@ -50,6 +50,8 @@ languages:
     run: julia solution.jl
   kotlin:
     run: /bin/sh run.sh
+  lolcode:
+    run: /bin/sh run.sh
   lua:
     container: alpinelinux/lua-turbo
     run: lua solution.lua
