@@ -86,6 +86,8 @@ languages:
   racket:
     container: racket/racket
     run: racket solution.rkt
+  roc:
+    run: /bin/sh run.sh
   ruby:
     container: ruby:latest
     run: ruby solution.rb
