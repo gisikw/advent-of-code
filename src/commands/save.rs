@@ -1,8 +1,8 @@
 use crate::utils;
-use serde_yaml::{Value, Mapping, Sequence};
-use std::path::Path;
-use std::fs;
 use md5;
+use serde_yaml::{Mapping, Sequence, Value};
+use std::fs;
+use std::path::Path;
 
 pub fn run(example_name: Option<String>, part: Option<usize>, answer: String) {
     let (resolved_year, resolved_day, _) = utils::resolve_aoc_settings(None, None, None);
@@ -18,15 +18,24 @@ pub fn run(example_name: Option<String>, part: Option<usize>, answer: String) {
         Value::Mapping(Mapping::new())
     };
 
-    if example_name.is_none() {
-        add_official_answer(&mut solutions_data, resolved_part, &answer);
-        println!("Official solution saved.");
-    } else {
-        add_example_answer(&mut solutions_data, &example_name.unwrap(), resolved_part, &answer);
-        println!("Example answer saved.");
+    match example_name.as_deref() {
+        Some("input.txt") | None => {
+            add_official_answer(&mut solutions_data, resolved_part, &answer);
+            println!("Official solution saved.");
+        }
+        _ => {
+            add_example_answer(
+                &mut solutions_data,
+                &example_name.unwrap(),
+                resolved_part,
+                &answer,
+            );
+            println!("Example answer saved.");
+        }
     }
 
-    let yaml_data = serde_yaml::to_string(&solutions_data).expect("Failed to serialize solutions data");
+    let yaml_data =
+        serde_yaml::to_string(&solutions_data).expect("Failed to serialize solutions data");
     fs::write(&solutions_file_path, yaml_data).expect("Failed to write solutions file");
 }
 
@@ -43,7 +52,7 @@ fn add_official_answer(solutions_data: &mut Value, part: usize, answer: &str) {
 
     official_mapping.insert(
         Value::String(format!("part{}", part)),
-        Value::String(answer_hash)
+        Value::String(answer_hash),
     );
 }
 
@@ -64,11 +73,20 @@ fn add_example_answer(solutions_data: &mut Value, example_name: &str, part: usiz
         example
             .as_mapping_mut()
             .expect("Expected example to be a mapping")
-            .insert(Value::String(format!("part{}", part)), Value::String(answer.to_string()));
+            .insert(
+                Value::String(format!("part{}", part)),
+                Value::String(answer.to_string()),
+            );
     } else {
         let mut new_example = Mapping::new();
-        new_example.insert(Value::String("input".to_string()), Value::String(format!("{}.txt", example_name)));
-        new_example.insert(Value::String(format!("part{}", part)), Value::String(answer.to_string()));
+        new_example.insert(
+            Value::String("input".to_string()),
+            Value::String(format!("{}.txt", example_name)),
+        );
+        new_example.insert(
+            Value::String(format!("part{}", part)),
+            Value::String(answer.to_string()),
+        );
         examples.push(Value::Mapping(new_example));
     }
 }
