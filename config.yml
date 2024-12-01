@@ -68,6 +68,8 @@ languages:
   ocaml:
     container: ocaml/opam:latest
     run: ocaml solution.ml
+  odin:
+    run: odin run solution.odin -file --
   perl:
     container: perl:latest
     run: perl solution.pl
