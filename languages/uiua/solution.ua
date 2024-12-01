@@ -1,3 +1,3 @@
-⊔ ⊡ 2 &args
+⊡ 2 &args
 /+ ="\n" &fras ⊡ 1 &args
-&p $ Received _ lines of input for part _
+&p $"Received _ lines of input for part _"
