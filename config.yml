@@ -114,7 +114,7 @@ languages:
     container: esolang/tcl
     run: tclsh solution.tcl
   uiua:
-    run: uiua solution.ua
+    run: uiua run --no-color solution.ua
   v:
     run: v run solution.v
   wren:
