@@ -10,6 +10,8 @@ languages:
   clojure:
     container: clojure:latest
     run: clojure -M -i solution.clj -m solution
+  cobol:
+    run: /bin/sh run.sh
   crystal:
     container: crystallang/crystal:latest
     run: crystal run solution.cr --
@@ -24,6 +26,8 @@ languages:
     run: elixir solution.exs
   erlang:
     container: erlang:latest
+    run: /bin/sh run.sh
+  fortran:
     run: /bin/sh run.sh
   fsharp:
     container: mcr.microsoft.com/dotnet/sdk:latest
@@ -70,6 +74,8 @@ languages:
     run: ocaml solution.ml
   odin:
     run: odin run solution.odin -file --
+  pascal:
+    run: /bin/sh run.sh
   perl:
     container: perl:latest
     run: perl solution.pl

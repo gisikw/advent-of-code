@@ -1,0 +1,44 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. Solution.
+
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT INPUT-FILE ASSIGN TO DYNAMIC-FILE-NAME
+               ORGANIZATION IS LINE SEQUENTIAL.
+
+       DATA DIVISION.
+       FILE SECTION.
+       FD INPUT-FILE.
+       01 INPUT-RECORD PIC X(256).
+
+       WORKING-STORAGE SECTION.
+       01 DYNAMIC-FILE-NAME PIC X(256).
+       01 PART PIC X(256).
+       01 LINE-COUNT PIC 9(9) VALUE 0.
+       01 LINE-COUNT-TEXT PIC Z(9).
+       01 END-OF-FILE PIC X VALUE "F".
+
+       PROCEDURE DIVISION.
+       MAIN-LOGIC.
+           ACCEPT DYNAMIC-FILE-NAME
+           ACCEPT PART
+
+           OPEN INPUT INPUT-FILE
+
+           PERFORM UNTIL END-OF-FILE = "T"
+               PERFORM READ-LINES
+           END-PERFORM.
+
+           CLOSE INPUT-FILE.
+
+           MOVE LINE-COUNT TO LINE-COUNT-TEXT.
+           DISPLAY "Received " FUNCTION TRIM(LINE-COUNT-TEXT) " lines of input for part " PART.
+           STOP RUN.
+
+       READ-LINES.
+           READ INPUT-FILE INTO INPUT-RECORD
+               AT END
+                   MOVE "T" TO END-OF-FILE
+               NOT AT END
+                   ADD 1 TO LINE-COUNT.
