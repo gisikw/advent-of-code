@@ -1,0 +1,46 @@
+const input_file = args[1]
+const part = args[2]
+
+const f = io.open(input_file)
+const lines = f->read('a')->rtrim()->split('\n')
+
+const prefixes = {}
+let i = 0
+while lines[i] != "" {
+  const parts = lines[i]->split("|")
+  prefixes[parts[1]] ||= collections.set()
+  prefixes[parts[1]]->add(parts[0])
+  i += 1
+}
+i += 1
+
+let ordered_sum = 0
+let unordered_sum = 0
+while i < len(lines) {
+  let valid = true
+  const nums = lines[i]->split(",")
+  for let j = 0; j < len(nums); j += 1 {
+    for let k = j + 1; k < len(nums); k += 1 {
+      if prefixes[nums[j]][nums[k]] {
+        valid = false
+        const tmp = nums[j]
+        nums[j] = nums[k]
+        nums[k] = tmp
+        k = len(nums)
+        j -= 1
+      }
+    }
+  }
+  if (valid) {
+    ordered_sum += nums[(len(nums) / 2)->toint()]->toint()
+  } else {
+    unordered_sum += nums[(len(nums) / 2)->toint()]->toint()
+  }
+  i += 1
+}
+
+if part == "1" {
+  echo ordered_sum
+} else {
+  echo unordered_sum
+}
