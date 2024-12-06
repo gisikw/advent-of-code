@@ -68,9 +68,7 @@ program Solution
         do r = 1, 130
             do c = 1, 130
                 if (grid(r,c) == "X") then
-                    grid_copy = grid
-                    grid_copy(r,c) = "#"
-                    if (loops(grid_copy, start_row, start_col)) sum = sum + 1
+                    if (loops(grid, r, c, start_row, start_col)) sum = sum + 1
                 end if
             end do
         end do
@@ -80,16 +78,17 @@ program Solution
 
 contains
 
-    pure function loops(grid_copy, start_row, start_col) result(out)
-        character, intent(in) :: grid_copy(130,130)
+    pure function loops(in_grid, in_r, in_c, start_r, start_c) result (out)
+        character, intent(in) :: in_grid(130,130)
         character :: grid(130,130)
-        integer, intent(in) :: start_row, start_col
+        integer, intent(in) :: in_r, in_c, start_r, start_c
         integer :: r, c, row, col, dir, i
         logical :: out
         out = .TRUE.
-        grid = grid_copy
-        row = start_row
-        col = start_col
+        grid = in_grid
+        grid(in_r,in_c) = "#"
+        row = start_r
+        col = start_c
         dir = 1
         do i = 1, 10000
             select case (dir)
