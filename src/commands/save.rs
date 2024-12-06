@@ -19,7 +19,7 @@ pub fn run(example_name: Option<String>, part: Option<usize>, answer: String) {
     };
 
     match example_name.as_deref() {
-        Some("input.txt") | None => {
+        Some("input") | None => {
             add_official_answer(&mut solutions_data, resolved_part, &answer);
             println!("Official solution saved.");
         }
