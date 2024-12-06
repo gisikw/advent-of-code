@@ -5,30 +5,30 @@ use std::fs;
 pub fn run(year: &Option<usize>) {
     let languages = utils::get_supported_languages();
     let used_languages = find_used_languages(year);
-    let mut unused_languages = languages
+    let mut used_languages = languages
         .iter()
-        .filter(|language| !used_languages.contains(language))
+        .filter(|language| used_languages.contains(language))
         .cloned()
         .collect::<Vec<String>>();
 
-    if unused_languages.is_empty() {
+    if used_languages.is_empty() {
         match year {
             Some(year) => println!("No unused languages found for year {}", year),
             None => println!("No unused languages found"),
         }
     } else {
-        unused_languages.sort();
+        used_languages.sort();
         match year {
             Some(year) => println!(
-                "Unused languages for year {} ({}): {}",
+                "Used languages for year {} ({}): {}",
                 year,
-                unused_languages.len(),
-                unused_languages.join(", ")
+                used_languages.len(),
+                used_languages.join(", ")
             ),
             None => println!(
-                "Unused languages ({}): {}",
-                unused_languages.len(),
-                unused_languages.join(", ")
+                "Used languages ({}): {}",
+                used_languages.len(),
+                used_languages.join(", ")
             ),
         }
     }

@@ -92,6 +92,11 @@ enum Commands {
     Unused {
         year: Option<usize>,
     },
+
+    #[command(about = "Show supported languages that have been used, optionally filtered by year")]
+    Used {
+        year: Option<usize>,
+    },
 }
 
 fn main() {
@@ -139,6 +144,7 @@ fn main() {
         } => commands::set::run(*year, *day, language),
         Commands::Test { language } => commands::test::run(language),
         Commands::Unused { year } => commands::unused::run(year),
+        Commands::Used { year } => commands::used::run(year),
     }
 }
 
