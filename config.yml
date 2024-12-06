@@ -63,6 +63,8 @@ languages:
     run: lua solution.lua
   miniscript:
     run: miniscript solution.ms
+  moonscript:
+    run: moon solution.moon
   nim:
     container: nimlang/nim
     run: /bin/sh run.sh
