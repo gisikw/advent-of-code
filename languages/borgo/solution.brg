@@ -1,0 +1,21 @@
+use fmt
+use os
+use strings
+
+fn main() {
+  let inputFile = os.Args[1]
+  let part = os.Args[2]
+
+  let content = match os.ReadFile(inputFile) {
+    Ok(bytes) => string(bytes),
+    Err(e) => {
+      fmt.Printf("Error reading file: %s\n", e)
+      return
+    }
+  }
+
+  let trimmed = strings.TrimSpace(content)
+  let lines = strings.Split(trimmed, "\n")
+
+  fmt.Printf("Received %d lines of input for part %s\n", lines.Len(), part)
+}

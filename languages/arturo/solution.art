@@ -1,0 +1,2 @@
+lines_count: size split.lines strip read arg\0
+print [ "Received" lines_count "lines of input for part" arg\1 ]

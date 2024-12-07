@@ -1,9 +1,13 @@
 languages:
   ada:
-    run : /bin/sh run.sh
+    run: /bin/sh run.sh
+  arturo:
+    run: arturo solution.art
   bash:
     container: bash:latest
     run: bash solution.sh
+  borgo:
+    run: /bin/sh run.sh
   c:
     container: gcc:latest
     run: /bin/sh run.sh
