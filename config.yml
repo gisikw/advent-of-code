@@ -48,6 +48,8 @@ languages:
     run: haxe --run Solution
   io:
     run: io solution.io
+  janet:
+    run: janet solution.janet
   java:
     container: openjdk:17
     run: /bin/sh run.sh
