@@ -15,15 +15,23 @@
       (do
         (def val (get rest 0))
         (or
-          (can-merge-to target ; 
-            (array/concat (array (+ num val)) (array/slice rest 1)))
-          (can-merge-to target ; 
-            (array/concat (array (* num val)) (array/slice rest 1)))
-          (and 
+          (let [merge (+ num val)]
+            (if (> merge target) false
+              (can-merge-to target ;
+                (array/concat
+                  (array merge) (array/slice rest 1)))))
+          (let [merge (* num val)]
+            (if (> merge target) false
+              (can-merge-to target ;
+                (array/concat
+                  (array merge) (array/slice rest 1)))))
+          (and
             (= part "2")
-            (can-merge-to target ; 
-              (array/concat 
-                (array (concat-nums num val)) (array/slice rest 1))))))))
+            (let [merge (concat-nums num val)]
+              (if (> merge target) false
+                (can-merge-to target ;
+                  (array/concat
+                    (array merge) (array/slice rest 1))))))))))
 
 (defn value [line]
   (do
