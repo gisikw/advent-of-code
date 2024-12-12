@@ -1,0 +1,116 @@
+grid: read arg\0
+  | strip
+  | split.lines
+  | map => split
+
+neighbors: $[coord][
+  @[
+    @[coord\0 + 1 coord\1]
+    @[coord\0 - 1 coord\1]
+    @[coord\0 coord\1 + 1]
+    @[coord\0 coord\1 - 1]
+  ] | filter 'n ->
+        or? n\0 < 0 
+            or? n\1 < 0  
+                or? n\0 >= (size grid)
+                    n\1 >= (size grid\0)
+    | select 'n -> grid\[n\0]\[n\1] = grid\[coord\0]\[coord\1]
+]
+
+fill: $[coord][
+  visited: @[coord]
+  queue: @[coord]
+  while [(size queue) > 0][
+    new_neighbors: neighbors queue\0
+      | difference visited
+    queue: queue ++ new_neighbors
+    visited: visited ++ new_neighbors
+    queue: slice queue 1 (size queue) - 1
+  ]
+  visited
+]
+
+perimeter: $[coords][
+  coords
+    | map 'coord -> 4 - (size neighbors coord)
+    | fold => add
+]
+
+clear: $[coords][
+  loop coords 'coord [
+    grid\[coord\0]\[coord\1]: "."
+  ]
+]
+
+fences: $[coord][
+  @[
+    @[0.25 0]
+    @[(0 - 0.25) 0]
+    @[0 0.25]
+    @[0 (0 - 0.25)]
+  ] | select 'n [
+        if? or? ((n\0 * 4) + coord\0) < 0
+               or? ((n\1 * 4) + coord\1) < 0
+                   or? ((n\0 * 4) + coord\0) >= (size grid)
+                       ((n\1 * 4) + coord\1) >= (size grid\0) -> true
+        else [
+          grid\[
+            coord\0 + (to :integer n\0 * 4)
+          ]\[
+            coord\1 + (to :integer n\1 * 4)
+          ] <> grid\[coord\0]\[coord\1]
+        ]
+  ] | map 'n -> @[coord\0 + n\0 coord\1 + n\1]
+]
+
+colinear_segments: $[group][
+  all_fences: (group | map => fences | flatten.once)
+  segments: []
+  partitioned: []
+  while [(size all_fences) > 0][
+    if? ((all_fences\0\0) % 1) <> 0 [
+      partitioned: gather all_fences 'f -> f\0 = all_fences\0\0
+      segments: segments ++ @[partitioned\true | map 'f -> f\1]
+    ] else [
+      partitioned: gather all_fences 'f -> f\1 = all_fences\0\1
+      segments: segments ++ @[partitioned\true | map 'f -> f\0]
+    ]
+    if? (contains? keys partitioned "false") -> all_fences: partitioned\false
+    else -> all_fences: []
+  ]
+  segments
+]
+
+continuous_segments: $[seg][
+  count: 1
+  if? (size seg) > 1 [
+    seg: sort seg
+    loop 1..(size seg)-1 'i [
+      if? seg\[i] <> seg\[i-1] + 1 -> count: count + 1
+    ]
+  ]
+  count
+]
+
+total_fences: $[group][
+  segs: group 
+    | colinear_segments 
+    | map => continuous_segments
+  fold segs => add
+]
+
+sum: 0
+loop 0..(size grid)-1 'row [
+  loop 0..(size grid\[row])-1 'col [
+    if? grid\[row]\[col] <> "." [
+      group: fill @[row col]
+      if? arg\1 = "1" [
+        sum: sum + (size group) * (perimeter group)
+      ] else [
+        sum: sum + (size group) * (total_fences group)
+      ]
+      clear group
+    ]
+  ]
+]
+print sum
