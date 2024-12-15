@@ -62,6 +62,8 @@ languages:
     run: julia solution.jl
   kotlin:
     run: /bin/sh run.sh
+  lobster:
+    run: lobster solution.lobster --
   lolcode:
     run: /bin/sh run.sh
   lua:
