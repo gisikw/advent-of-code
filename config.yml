@@ -135,8 +135,6 @@ languages:
     run: v run solution.v
   wren:
     run: wren_cli solution.wren
-  xslt:
-    run: /bin/sh run.sh
   yasl:
     run: yasl solution.yasl
   zig:
