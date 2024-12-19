@@ -14,13 +14,12 @@ compositions = (whole, parts) ->
     cache[whole] = sum
   return cache[whole]
 
+sum = 0
 if part == "1"
-  sum = 0
   for line in *lines[3,]
     sum += 1 if compositions(line, towels) > 0
-  print sum
 else
   sum = 0
   for line in *lines[3,]
     sum += compositions line, towels
-  print string.format("%.0f",sum)
+print string.format("%.0f",sum)
