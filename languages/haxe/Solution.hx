@@ -7,6 +7,6 @@ class Solution {
         var lines = content.split("\n").filter(s -> s != "");
         var linesCount = lines.length;
 
-        trace('Received $linesCount lines of input for part $part');
+        Sys.println('Received $linesCount lines of input for part $part');
     }
 }
