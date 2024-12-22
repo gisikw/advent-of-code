@@ -3,6 +3,8 @@ args := System args
 inputFile := args at(1)
 part := args at(2)
 
+maxDepth := if(part == "1", 2, 25)
+
 content := File with(inputFile) contents
 lines := content split("\n")
 
@@ -74,65 +76,94 @@ dirpad foreach (src, srcCoords,
   dirpaths atPut(src, srcPaths)
 )
 
-parseNumpad := method(tokens, lastToken, results,
-  if(tokens size == 0, return results)
-  if(lastToken == nil, 
-    lastToken = "A"
-    results = list("")
-  )
-  token := tokens at(0)
-  paths := numpaths at(lastToken) at(token)
+Node := Object clone
 
-  nextResults := list()
-  numpaths at(lastToken) at(token) foreach(path,
-    results foreach(result, 
-      pathStr := path join("")
-      nextResults append("#{result}#{pathStr}A" interpolate)
+cache := list()
+for(i, 0, 26, cache append(Map clone))
+cost := method(node,
+
+  // Init case
+  if (node protos contains(Node) == false,
+    sum := 0
+    node asList foreach(i, char, 
+      child := Node clone
+      child src := if(i == 0, "A", node asList at(i - 1))
+      child dst := char
+      child depth := 0
+      sum = sum + cost(child)
     )
+    return sum
   )
-  parseNumpad(tokens slice(1), token, nextResults)
-)
-
-parseDirpad := method(tokens, lastToken, results,
-  if(tokens size == 0, return results)
-  if(lastToken == nil, 
-    lastToken = "A"
-    results = list("")
-  )
-  token := tokens at(0)
-  paths := dirpaths at(lastToken) at(token)
-
-  nextResults := list()
-  paths := dirpaths at(lastToken) at(token)
-  if (paths isEmpty,
-    results foreach(result, 
-      nextResults append("#{result}A" interpolate)
-    ),
-    paths foreach(path, 
-      results foreach(result, 
-        pathStr := path join("")
-        nextResults append("#{result}#{pathStr}A" interpolate)
+  
+  if (node depth == 0,
+    options := numpaths at(node src) at(node dst)
+    min := nil
+    options foreach(opt,
+      sum := 0
+      opt foreach(i, char,
+        child := Node clone
+        child src := if(i == 0, "A", opt at(i - 1))
+        child dst := char
+        child depth := node depth + 1
+        sum = sum + cost(child)
       )
+      child := Node clone
+      child src := opt last
+      child dst := "A"
+      child depth := node depth + 1
+      sum = sum + cost(child)
+      if(min == nil or sum < min, min = sum)
     )
+    return min
   )
-  parseDirpad(tokens slice(1), token, nextResults)
-)
 
-seqLength := method(code, remove, 
-  seq := parseNumpad(code asList)
-  for(i, 0, remove - 1, 
-    seq = seq map(path, parseDirpad(path asList)) flatten
+  if (node depth > maxDepth, return 1)
+
+  cached := cache at(node depth) at("#{node src}#{node dst}" interpolate)
+  if (cached != nil, return cached)
+
+  options := dirpaths at(node src) at(node dst)
+  min := nil
+  if (options size == 0, return 1)
+  options foreach(opt,
+    sum := 0
+    opt foreach(i, char,
+      child := Node clone
+      child src := if(i == 0, "A", opt at(i - 1))
+      child dst := char
+      child depth := node depth + 1
+      sum = sum + cost(child)
+    )
+    if (opt size == 0,
+      sum = sum + 1,
+      child := Node clone
+      child src := opt last
+      child dst := "A"
+      child depth := node depth + 1
+      sum = sum + cost(child)
+    )
+    if(min == nil or sum < min, min = sum)
   )
-  seq map(size) min
+
+  cache at(node depth) atPut("#{node src}#{node dst}" interpolate, min)
+  return min
 )
 
 complexity := method(code,
   num := code asMutable removeSeq("A", "") asNumber
-  if(part == "1", depth := 2, depth := 25)
-  num * seqLength(code, depth)
+  num * cost(code)
+)
+
+digits := method(num,
+  i := 0
+  while(num > 1,
+    num = num / 10
+    i = i + 1
+  )
+  i
 )
 
 sum := 0
 lines foreach(line, sum = sum + complexity(line))
-sum println
+sum asString(digits(sum),0) println
 0
