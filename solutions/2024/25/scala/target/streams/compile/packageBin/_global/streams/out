@@ -1,0 +1,11 @@
+[debug] Packaging /solution/target/scala-2.13/aocscalasolution_2.13-0.1.jar ...
+[debug] Input file mappings:
+[debug] 	aoc
+[debug] 	  /solution/target/scala-2.13/classes/aoc
+[debug] 	aoc/Solution.class
+[debug] 	  /solution/target/scala-2.13/classes/aoc/Solution.class
+[debug] 	aoc/Solution$delayedInit$body.class
+[debug] 	  /solution/target/scala-2.13/classes/aoc/Solution$delayedInit$body.class
+[debug] 	aoc/Solution$.class
+[debug] 	  /solution/target/scala-2.13/classes/aoc/Solution$.class
+[debug] Done packaging.

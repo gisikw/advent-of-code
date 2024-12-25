@@ -1,0 +1,11 @@
+[error] /solution/Solution.scala:9:66: value map is not a member of (Iterator[List[String]], Iterator[List[String]])
+[error] did you mean swap?
+[error]     val (locks, keys) = groups.partition(g => g.head == "#####").map(set =>
+[error]                                                                  ^
+[error] /solution/Solution.scala:13:24: value map is not a member of Any
+[error]     val combos = locks.map(lock =>
+[error]                        ^
+[error] /solution/Solution.scala:14:14: value count is not a member of Any
+[error]         keys.count(key =>
+[error]              ^
+[error] three errors found
