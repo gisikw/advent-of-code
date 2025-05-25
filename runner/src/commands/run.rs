@@ -1,20 +1,24 @@
-use std::path::Path;
-use std::fs;
 use crate::utils::{self, LanguageConfig};
-use std::process::{Command, Stdio, exit};
-use std::io::{self, BufRead};
-use serde_yaml::{Value, Mapping, Sequence};
-use reqwest::blocking::{Client};
+use md5;
+use regex::Regex;
+use reqwest::blocking::Client;
+use serde_yaml::{Mapping, Sequence, Value};
 use std::collections::HashMap;
 use std::env;
-use regex::Regex;
-use md5;
+use std::fs;
+use std::io::{self, BufRead};
+use std::path::Path;
+use std::process::{exit, Command, Stdio};
 
 pub fn run(example_name: Option<String>, part: Option<usize>, confirmation: Option<bool>) {
     let mut context = RunContext::new(example_name, part, confirmation);
 
-    context.prepare_docker_container();
-    context.execute_solution();
+    if utils::has_devshell(&context.settings.language) {
+        context.execute_solution_nix();
+    } else {
+        context.prepare_docker_container();
+        context.execute_solution_docker();
+    }
 
     if context.check_solution().is_none() {
         if context.submit_solution() {
@@ -68,7 +72,7 @@ impl RunContext {
         let language = &self.settings.language;
 
         let dockerfile = Path::new(solution_path).join("Dockerfile");
-        let docker_ref_file = Path::new(solution_path).join(".docker-image-ref"); 
+        let docker_ref_file = Path::new(solution_path).join(".docker-image-ref");
 
         self.docker_image_ref = if dockerfile.exists() {
             Some(verify_dockerfile(&dockerfile, language))
@@ -79,12 +83,10 @@ impl RunContext {
         }
     }
 
-    fn execute_solution(&mut self) {
+    fn execute_solution_docker(&mut self) {
         let full_command = format!(
             "{} /problem/{}.txt {}",
-            &self.settings.language_config.run,
-            &self.settings.example_name,
-            &self.settings.part
+            &self.settings.language_config.run, &self.settings.example_name, &self.settings.part
         );
 
         let mut child = Command::new("docker")
@@ -119,7 +121,70 @@ impl RunContext {
         let status = child.wait().expect("Failed to wait for child process");
 
         if !status.success() {
-            eprintln!("Docker run failed with exit code {}", status.code().unwrap());
+            eprintln!(
+                "Docker run failed with exit code {}",
+                status.code().unwrap()
+            );
+            exit(1);
+        }
+
+        self.result = last_line;
+    }
+
+    fn execute_solution_nix(&mut self) {
+        use std::fs;
+        use std::path::PathBuf;
+
+        // Construct the real path to the input file
+        let input_path = fs::canonicalize(
+            PathBuf::from(&self.settings.problem_path)
+                .join(format!("{}.txt", &self.settings.example_name)),
+        )
+        .expect("Failed to resolve absolute input path");
+
+        if !input_path.exists() {
+            eprintln!("Input file not found: {}", input_path.display());
+            exit(1);
+        }
+
+        // Construct the command line as defined in the language config
+        let full_command = format!(
+            "{} {} {}",
+            &self.settings.language_config.run,
+            input_path.display(),
+            &self.settings.part
+        );
+
+        // Launch via nix develop in the solution dir
+        let mut child = Command::new("nix")
+            .arg("develop")
+            .arg(format!(".#{}", self.settings.language))
+            .arg("-c")
+            .arg("sh")
+            .arg("-c")
+            .arg(&full_command)
+            .current_dir(&self.settings.solution_path)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::inherit())
+            .spawn()
+            .expect("Failed to start nix shell");
+
+        let stdout = child.stdout.take().expect("Failed to capture stdout");
+        let reader = io::BufReader::new(stdout);
+
+        let mut last_line = None;
+        for line in reader.lines() {
+            let line = line.expect("Failed to read line");
+            println!("{}", line);
+            last_line = Some(line);
+        }
+
+        let status = child.wait().expect("Failed to wait on nix process");
+        if !status.success() {
+            eprintln!(
+                "Nix run failed with exit code {}",
+                status.code().unwrap_or(1)
+            );
             exit(1);
         }
 
@@ -137,7 +202,10 @@ impl RunContext {
 
         let mapping;
         if &self.settings.example_name == "input" {
-            mapping = self.solutions_data.as_mut().unwrap()
+            mapping = self
+                .solutions_data
+                .as_mut()
+                .unwrap()
                 .as_mapping_mut()
                 .expect("Expected solutions data to be a mapping")
                 .entry(serde_yaml::Value::String("official".to_string()))
@@ -145,7 +213,10 @@ impl RunContext {
                 .as_mapping_mut()
                 .expect("Expected official solutions to be a mapping")
         } else {
-            let examples = self.solutions_data.as_mut().unwrap()
+            let examples = self
+                .solutions_data
+                .as_mut()
+                .unwrap()
                 .as_mapping_mut()
                 .expect("Expected solutions data to be a mapping")
                 .entry(Value::String("examples".to_string()))
@@ -156,13 +227,22 @@ impl RunContext {
             mapping = if let Some(example) = examples.iter_mut().find(|ex| {
                 ex.as_mapping()
                     .and_then(|map| map.get(&Value::String("input".to_string())))
-                    == Some(&Value::String(format!("{}.txt", &self.settings.example_name)))
+                    == Some(&Value::String(format!(
+                        "{}.txt",
+                        &self.settings.example_name
+                    )))
             }) {
-                example.as_mapping_mut().expect("Expected example to be a mapping")
+                example
+                    .as_mapping_mut()
+                    .expect("Expected example to be a mapping")
             } else {
                 let new_example = Value::Mapping(Mapping::new());
                 examples.push(new_example);
-                examples.last_mut().unwrap().as_mapping_mut().expect("Expected example to be a mapping")
+                examples
+                    .last_mut()
+                    .unwrap()
+                    .as_mapping_mut()
+                    .expect("Expected example to be a mapping")
             }
         };
 
@@ -187,9 +267,12 @@ impl RunContext {
         } else if &self.settings.example_name == "input" {
             println!("\x1b[31m❌ Incorrect answer.\x1b[0m\n")
         } else {
-            println!("\x1b[31m❌ Incorrect answer. Expected {}\x1b[0m\n", expected_answer.unwrap())
+            println!(
+                "\x1b[31m❌ Incorrect answer. Expected {}\x1b[0m\n",
+                expected_answer.unwrap()
+            )
         }
-       
+
         Some(result)
     }
 
@@ -197,9 +280,10 @@ impl RunContext {
         if &self.settings.example_name != "input" {
             return true;
         }
-        let confirmation = self.settings.confirmation.unwrap_or_else(|| {
-            utils::confirm("Do you want to submit this answer?")
-        });
+        let confirmation = self
+            .settings
+            .confirmation
+            .unwrap_or_else(|| utils::confirm("Do you want to submit this answer?"));
         if !confirmation {
             return false;
         }
@@ -217,7 +301,10 @@ impl RunContext {
         data.insert("level", self.settings.part.to_string());
         data.insert("answer", self.result.as_ref().unwrap().to_string());
 
-        let url = format!("https://adventofcode.com/{}/day/{}/answer", &self.settings.year, &self.settings.day);
+        let url = format!(
+            "https://adventofcode.com/{}/day/{}/answer",
+            &self.settings.year, &self.settings.day
+        );
         let response = client
             .post(&url)
             .header("Cookie", format!("session={}", aoc_session))
@@ -247,8 +334,13 @@ impl RunContext {
             println!("\x1b[31m❌ Incorrect answer submitted.\x1b[0m");
         } else if text.contains("You gave an answer too recently") {
             let re = Regex::new(r"You have ([^l]+) left to wait").unwrap();
-            let wait = re.captures(&text).and_then(|caps| caps.get(1).map(|m| m.as_str().trim().to_string()));
-            println!("\x1b[33m⏱ Please wait {} before submitting another answer.\x1b[0m", wait.unwrap_or("a while".to_string()));
+            let wait = re
+                .captures(&text)
+                .and_then(|caps| caps.get(1).map(|m| m.as_str().trim().to_string()));
+            println!(
+                "\x1b[33m⏱ Please wait {} before submitting another answer.\x1b[0m",
+                wait.unwrap_or("a while".to_string())
+            );
         } else if text.contains("You don't seem to be solving the right level") {
             println!("\x1b[33m⚠️  You don't seem to be solving the right level.\x1b[0m");
         } else {
@@ -259,17 +351,18 @@ impl RunContext {
     }
 
     fn save_solution(&mut self) {
-        let confirmation = self.settings.confirmation.unwrap_or_else(|| {
-            utils::confirm("Do you want to save this solution?")
-        });
+        let confirmation = self
+            .settings
+            .confirmation
+            .unwrap_or_else(|| utils::confirm("Do you want to save this solution?"));
         if !confirmation {
-            return
+            return;
         }
 
         crate::commands::save::run(
-            Some(self.settings.example_name.clone()), 
-            Some(self.settings.part), 
-            self.result.as_ref().unwrap().to_string()
+            Some(self.settings.example_name.clone()),
+            Some(self.settings.part),
+            self.result.as_ref().unwrap().to_string(),
         );
     }
 }
@@ -286,14 +379,25 @@ fn verify_dockerfile(dockerfile: &Path, lang: &String) -> String {
     if output.stdout.is_empty() {
         println!("Dockerfile has changed or new build required. Building image...");
         let status = Command::new("docker")
-            .args(&["buildx", "build", "-t", &docker_tag, "-f", dockerfile.to_str().unwrap(), "."])
+            .args(&[
+                "buildx",
+                "build",
+                "-t",
+                &docker_tag,
+                "-f",
+                dockerfile.to_str().unwrap(),
+                ".",
+            ])
             .stdout(Stdio::inherit())
             .stderr(Stdio::inherit())
             .status()
             .expect("Failed to build Docker image");
 
         if !status.success() {
-            eprintln!("Docker build failed with exit code {}", status.code().unwrap());
+            eprintln!(
+                "Docker build failed with exit code {}",
+                status.code().unwrap()
+            );
             exit(1);
         }
     }
@@ -304,7 +408,7 @@ fn verify_dockerfile(dockerfile: &Path, lang: &String) -> String {
 fn verify_docker_ref_file(docker_ref_file: &Path) -> String {
     let content = fs::read_to_string(docker_ref_file).expect("Failed to read Dockerfile");
     let docker_tag = content.trim_end().to_string();
-    
+
     let output = Command::new("docker")
         .args(&["images", "-q", &docker_tag])
         .output()
@@ -320,7 +424,10 @@ fn verify_docker_ref_file(docker_ref_file: &Path) -> String {
             .expect("Failed to pull Docker image");
 
         if !status.success() {
-            eprintln!("Docker pull failed with exit code {}", status.code().unwrap());
+            eprintln!(
+                "Docker pull failed with exit code {}",
+                status.code().unwrap()
+            );
             exit(1);
         }
     }
@@ -341,12 +448,20 @@ fn create_docker_ref_file(docker_ref_file: &Path, lang: &String) -> String {
         .expect("Failed to pull Docker image");
 
     if !status.success() {
-        eprintln!("Docker pull failed with exit code {}", status.code().unwrap());
+        eprintln!(
+            "Docker pull failed with exit code {}",
+            status.code().unwrap()
+        );
         exit(1);
     }
 
     let output = Command::new("docker")
-        .args(&["inspect", "--format", "{{index .RepoDigests 0}}", &base_image])
+        .args(&[
+            "inspect",
+            "--format",
+            "{{index .RepoDigests 0}}",
+            &base_image,
+        ])
         .output()
         .expect("Failed to check Docker image");
 

@@ -1,20 +1,21 @@
-use serde::Deserialize;
-use rand::seq::SliceRandom;
-use rand::thread_rng;
-use std::path::PathBuf;
-use std::fs;
-use std::path::Path;
-use std::collections::HashMap;
 use crossterm::event::{self, Event, KeyCode};
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
+use rand::seq::SliceRandom;
+use rand::thread_rng;
+use serde::Deserialize;
+use std::collections::HashMap;
+use std::fs;
 use std::io::{self, Write};
+use std::path::Path;
+use std::path::PathBuf;
+use std::process::Command;
 
 #[derive(Debug, Deserialize)]
 struct Config {
     languages: HashMap<String, LanguageConfig>,
 }
 
-#[derive(Debug, Deserialize,Clone)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct LanguageConfig {
     pub container: Option<String>,
     pub run: String,
@@ -45,7 +46,6 @@ pub fn resolve_aoc_settings(
     day: Option<usize>,
     language: Option<String>,
 ) -> (usize, usize, String) {
-
     let mut resolved_year = year;
     let mut resolved_day = day;
     let mut resolved_lang = language;
@@ -112,7 +112,7 @@ pub fn resolve_aoc_settings(
         std::process::exit(1);
     }
 
-    (y,d,l)
+    (y, d, l)
 }
 
 pub fn confirm(prompt: &str) -> bool {
@@ -147,4 +147,30 @@ pub fn copy_dir_all(src: &Path, dst: &Path) -> io::Result<()> {
         }
     }
     Ok(())
+}
+
+pub fn has_devshell(lang: &str) -> bool {
+    let system_output = Command::new("nix")
+        .args(&[
+            "eval",
+            "--raw",
+            "--impure",
+            "--expr",
+            "builtins.currentSystem",
+        ])
+        .output();
+
+    let system = match system_output {
+        Ok(output) if output.status.success() => {
+            String::from_utf8_lossy(&output.stdout).trim().to_string()
+        }
+        _ => return false, // TODO: Better to panic here
+    };
+
+    let attr = format!(".#devShells.{}.{}", system, lang);
+    let check = Command::new("nix")
+        .args(&["eval", &attr, "--quiet"])
+        .output();
+
+    matches!(check, Ok(output) if output.status.success())
 }
