@@ -1,12 +1,12 @@
+use serde_yaml::Value;
 use std::fs;
 use std::io::Write;
 use std::path::Path;
-use serde_yaml::Value;
 
 fn main() {
     println!("cargo:rerun-if-changed=config.yml");
 
-    let config_path = Path::new("config.yml");
+    let config_path = Path::new("../config.yml");
     let out_dir = std::env::var("OUT_DIR").expect("OUT_DIR not set");
     let dest_path = Path::new(&out_dir).join("language_tests.rs");
 
@@ -20,7 +20,11 @@ fn main() {
         .as_mapping()
         .expect("'languages' should be a mapping")
         .keys()
-        .map(|k| k.as_str().expect("Language keys should be strings").to_string())
+        .map(|k| {
+            k.as_str()
+                .expect("Language keys should be strings")
+                .to_string()
+        })
         .collect::<Vec<String>>();
 
     // Generate language tests in `language_tests.rs`

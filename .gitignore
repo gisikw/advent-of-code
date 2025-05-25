@@ -2,4 +2,4 @@
 /problems/9999
 /solutions/9999
 /problems/*/*/*.txt
-/target/
+runner/target/

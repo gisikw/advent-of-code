@@ -1,19 +1,19 @@
-use std::process::Command;
 use std::fs;
+use std::process::Command;
 
 struct Cleanup;
 
 impl Drop for Cleanup {
     fn drop(&mut self) {
-        fs::remove_dir_all("./problems/9999").expect("Failed to remove problem directory");
-        fs::remove_dir_all("./solutions/9999").expect("Failed to remove solution directory");
+        fs::remove_dir_all("../problems/9999").expect("Failed to remove problem directory");
+        fs::remove_dir_all("../solutions/9999").expect("Failed to remove solution directory");
     }
 }
 
 fn execute_language_template(lang: &str) {
     let _cleanup = Cleanup;
 
-    let output = Command::new("./target/debug/aoc")
+    let output = Command::new("./runner/target/debug/aoc")
         .args(["new", "9999", "25", lang, "-y"])
         .output()
         .expect("Failed to execute `aoc new` command");
@@ -27,14 +27,10 @@ fn execute_language_template(lang: &str) {
 
     fs::create_dir_all("./problems/9999/25").expect("Failed to create problem directory");
     let input_file = "./problems/9999/25/input.txt";
-    let text = concat!(
-        "line 1\n",
-        "line 2\n",
-        "line 3\n",
-    );
+    let text = concat!("line 1\n", "line 2\n", "line 3\n",);
     fs::write(input_file, text).expect("Failed to write input file");
 
-    let output = Command::new("./target/debug/aoc")
+    let output = Command::new("./runner/target/debug/aoc")
         .args(["run", "2", "-n"])
         .output()
         .expect("Failed to execute `aoc run` command");
