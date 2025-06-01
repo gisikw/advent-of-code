@@ -1,5 +1,5 @@
-use crate::utils;
 use crate::commands;
+use crate::utils;
 use std::fs;
 use std::path::Path;
 
@@ -13,7 +13,8 @@ pub fn run(year: usize, day: usize, language: &Option<String>, yes: &bool) {
         "Create new solution in ./solutions/{}/{:02}/{}?",
         resolved_year, resolved_day, resolved_lang
     );
-    if !utils::confirm(&create_message) && !yes {
+
+    if !*yes && !utils::confirm(&create_message) {
         println!("Aborted");
         return;
     }
@@ -23,7 +24,8 @@ pub fn run(year: usize, day: usize, language: &Option<String>, yes: &bool) {
     let target_path = format!("{}/{}", solution_dir, resolved_lang);
 
     fs::create_dir_all(&solution_dir).expect("Failed to create solution directory");
-    utils::copy_dir_all(&Path::new(&template_path), &Path::new(&target_path)).expect("Failed to copy template to solution directory");
+    utils::copy_dir_all(&Path::new(&template_path), &Path::new(&target_path))
+        .expect("Failed to copy template to solution directory");
 
     let fetch_message = "Solution created. Would you like to fetch the input?";
     if !resolved_year == 9999 && (utils::confirm(&fetch_message) || *yes) {

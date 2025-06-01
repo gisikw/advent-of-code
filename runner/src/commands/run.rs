@@ -51,15 +51,15 @@ impl RunContext {
         let (year, day, lang) = utils::resolve_aoc_settings(None, None, None);
         RunContext {
             settings: Settings {
-                year: year,
-                day: day,
+                year,
+                day,
                 language: lang.clone(),
                 problem_path: format!("./problems/{}/{:02}", year, day),
                 solution_path: format!("./solutions/{}/{:02}/{}", year, day, lang),
                 language_config: utils::get_language_config(&lang).unwrap(),
                 example_name: example_name.unwrap_or("input".to_string()),
                 part: part.unwrap_or(1),
-                confirmation: confirmation,
+                confirmation,
             },
             docker_image_ref: None,
             result: None,
