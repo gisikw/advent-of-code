@@ -29,9 +29,9 @@
           gleam = pkgs.mkShell { packages = [ pkgs.gleam ]; };
           go = pkgs.mkShell { packages = [ pkgs.go ]; };
           groovy = pkgs.mkShell { packages = [ pkgs.groovy ]; };
-          # haskell = pkgs.mkShell { packages = [ ]; };
+          haskell = pkgs.mkShell { packages = [ pkgs.ghc ]; };
           haxe = pkgs.mkShell { packages = [ pkgs.haxe ]; };
-          # io = pkgs.mkShell { packages = [ ]; };
+          # io = pkgs.mkShell { packages = [ pkgs.io ]; };
           janet = pkgs.mkShell { packages = [ pkgs.janet ]; };
           java = pkgs.mkShell { packages = [ pkgs.openjdk ]; };
           julia = pkgs.mkShell { packages = [ pkgs.julia-bin ]; };
@@ -59,13 +59,13 @@
           # scala = pkgs.mkShell { packages = [ ]; };
           spl = pkgs.mkShell { packages = [ pkgs.spl ]; };
           # sql = pkgs.mkShell { packages = [ ]; };
-          # swift = pkgs.mkShell { packages = [ ]; };
+          # swift = pkgs.mkShell { packages = [ pkgs.scala ]; };
           tcl = pkgs.mkShell { packages = [ pkgs.tcl ]; };
           uiua = pkgs.mkShell { packages = [ pkgs.uiua ]; };
           v = pkgs.mkShell { packages = [ pkgs.vlang ]; };
           # wren = pkgs.mkShell { packages = [ ]; };
           # yasl = pkgs.mkShell { packages = [ ]; };
-          # zig = pkgs.mkShell { packages = [ ]; };
+          zig = pkgs.mkShell { packages = [ pkgs.zig ]; };
         };
       }
     );

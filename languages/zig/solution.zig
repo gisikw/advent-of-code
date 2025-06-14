@@ -16,5 +16,7 @@ pub fn main() !void {
         std.heap.page_allocator, '\n', std.math.maxInt(usize)
     )) |_| : (line_count += 1) {}
 
-    std.debug.print("Received {d} lines of input for part {s}\n", .{ line_count, part });
+    try std.io.getStdOut().writer().print(
+        "Received {d} lines of input for part {s}\n", .{ line_count, part }
+    );
 }
