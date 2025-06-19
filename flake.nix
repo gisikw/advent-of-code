@@ -10,63 +10,188 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
-      in {
-        devShells = {
-          # ada = pkgs.mkShell { packages = [ ]; };
-          # arturo = pkgs.mkShell { packages = [ ]; };
-          bash = pkgs.mkShell { packages = [ pkgs.bash ]; };
-          # borgo = pkgs.mkShell { packages = [ ]; };
-          c = pkgs.mkShell { packages = [ pkgs.gcc ]; };
-          clojure = pkgs.mkShell { packages = [ pkgs.clojure pkgs.openjdk ]; };
-          # cobol = pkgs.mkShell { packages = [ ]; };
-          crystal = pkgs.mkShell { packages = [ pkgs.crystal ]; };
-          # d = pkgs.mkShell { packages = [ ]; };
-          dart = pkgs.mkShell { packages = [ pkgs.dart ]; };
-          elixir = pkgs.mkShell { packages = [ pkgs.elixir ]; };
-          erlang = pkgs.mkShell { packages = [ pkgs.erlang ]; };
-          fortran = pkgs.mkShell { packages = [ pkgs.gfortran ]; };
-          # fsharp = pkgs.mkShell { packages = [ ]; };
-          gleam = pkgs.mkShell { packages = [ pkgs.gleam ]; };
-          go = pkgs.mkShell { packages = [ pkgs.go ]; };
-          groovy = pkgs.mkShell { packages = [ pkgs.groovy ]; };
-          haskell = pkgs.mkShell { packages = [ pkgs.ghc ]; };
-          haxe = pkgs.mkShell { packages = [ pkgs.haxe ]; };
-          # io = pkgs.mkShell { packages = [ pkgs.io ]; };
-          janet = pkgs.mkShell { packages = [ pkgs.janet ]; };
-          java = pkgs.mkShell { packages = [ pkgs.openjdk ]; };
-          julia = pkgs.mkShell { packages = [ pkgs.julia-bin ]; };
-          kotlin = pkgs.mkShell { packages = [ pkgs.kotlin ]; };
-          # lobster = pkgs.mkShell { packages = [ ]; };
-          # lolcode = pkgs.mkShell { packages = [ ]; };
-          lua = pkgs.mkShell { packages = [ pkgs.lua ]; };
-          # miniscript = pkgs.mkShell { packages = [ ]; };
-          moonscript = pkgs.mkShell { packages = [ pkgs.luajitPackages.moonscript ]; };
-          nim = pkgs.mkShell { packages = [ pkgs.nim ]; };
-          node = pkgs.mkShell { packages = [ pkgs.nodejs_24 ]; };
-          ocaml = pkgs.mkShell { packages = [ pkgs.ocaml ]; };
-          odin = pkgs.mkShell { packages = [ pkgs.odin ]; };
-          pascal = pkgs.mkShell { packages = [ pkgs.fpc ]; };
-          perl = pkgs.mkShell { packages = [ pkgs.perl ]; };
-          php = pkgs.mkShell { packages = [ pkgs.php ]; };
-          prolog = pkgs.mkShell { packages = [ pkgs.swi-prolog ]; };
-          python = pkgs.mkShell { packages = [ pkgs.python314 ]; };
-          # qbasic = pkgs.mkShell { packages = [ ]; };
-          r = pkgs.mkShell { packages = [ pkgs.R ]; };
-          racket = pkgs.mkShell { packages = [ pkgs.racket-minimal ]; };
-          # roc = pkgs.mkShell { packages = [ ]; };
-          ruby = pkgs.mkShell { packages = [ pkgs.ruby ]; };
-          rust = pkgs.mkShell { packages = [ pkgs.rustc ]; };
-          # scala = pkgs.mkShell { packages = [ ]; };
-          spl = pkgs.mkShell { packages = [ pkgs.spl ]; };
-          # sql = pkgs.mkShell { packages = [ ]; };
-          # swift = pkgs.mkShell { packages = [ pkgs.scala ]; };
-          tcl = pkgs.mkShell { packages = [ pkgs.tcl ]; };
-          uiua = pkgs.mkShell { packages = [ pkgs.uiua ]; };
-          v = pkgs.mkShell { packages = [ pkgs.vlang ]; };
-          # wren = pkgs.mkShell { packages = [ ]; };
-          # yasl = pkgs.mkShell { packages = [ ]; };
-          zig = pkgs.mkShell { packages = [ pkgs.zig ]; };
+
+        langs = {
+          # ada = {}
+          # arturo = {}
+          bash = {
+            packages = [ pkgs.bash ]; 
+            run = "bash solution.sh";
+          };
+          # borgo = {}
+          c = {
+            packages = [ pkgs.gcc ];
+            run = "/bin/sh run.sh";
+          };
+          clojure = {
+            packages = [ pkgs.clojure pkgs.openjdk ];
+            run = "clojure -M -i solution.clj -m solution";
+          };
+          # cobol = {}
+          crystal = {
+            packages = [ pkgs.crystal ];
+            run = "crystal run solution.cr --";
+          };
+          d = {
+            packages = [ pkgs.ldc ];
+            run = "/bin/sh run.sh";
+          };
+          dart = {
+            packages = [ pkgs.dart ];
+            run = "dart solution.dart";
+          };
+          elixir = {
+            packages = [ pkgs.elixir ];
+            run = "elixir solution.exs";
+          };
+          erlang = {
+            packages = [ pkgs.erlang ];
+            run = "/bin/sh run.sh";
+          };
+          fortran = {
+            packages = [ pkgs.gfortran ];
+            run = "/bin/sh run.sh";
+          };
+          # fsharp = {}
+          gleam = {
+            packages = [ pkgs.gleam ];
+            run = "gleam run";
+          };
+          go = {
+            packages = [ pkgs.go ];
+            run = "go run solution.go";
+          };
+          groovy = {
+            packages = [ pkgs.groovy ];
+            run = "groovy solution.groovy";
+          };
+          haskell = {
+            packages = [ pkgs.ghc ];
+            run = "/bin/sh run.sh";
+          };
+          haxe = {
+            packages = [ pkgs.haxe ];
+            run = "haxe --run Solution";
+          };
+          # io = {}
+          janet = {
+            packages = [ pkgs.janet ];
+            run = "janet solution.janet";
+          };
+          java = {
+            packages = [ pkgs.openjdk ];
+            run = "/bin/sh run.sh";
+          };
+          julia = {
+            packages = [ pkgs.julia-bin ];
+            run = "julia solution.jl";
+          };
+          kotlin = {
+            packages = [ pkgs.kotlin ];
+            run = "/bin/sh run.sh";
+          };
+          # lobster = {}
+          # lolcode = {}
+          lua = {
+            packages = [ pkgs.lua ];
+            run = "lua solution.lua";
+          };
+          # miniscript = {}
+          moonscript = {
+            packages = [ pkgs.luajitPackages.moonscript ];
+            run = "moon solution.moon";
+          };
+          nim = {
+            packages = [ pkgs.nim ];
+            run = "/bin/sh run.sh";
+          };
+          node = {
+            packages = [ pkgs.nodejs_24 ];
+            run = "node solution.js";
+          };
+          ocaml = {
+            packages = [ pkgs.ocaml ];
+            run = "ocaml solution.ml";
+          };
+          odin = {
+            packages = [ pkgs.odin ];
+            run = "odin run solution.odin -file --";
+          };
+          pascal = {
+            packages = [ pkgs.fpc ];
+            run = "/bin/sh run.sh";
+          };
+          perl = {
+            packages = [ pkgs.perl ];
+            run = "perl solution.pl";
+          };
+          php = {
+            packages = [ pkgs.php ];
+            run = "php solution.php";
+          };
+          prolog = {
+            packages = [ pkgs.swi-prolog ];
+            run = "swipl solution.pl";
+          };
+          python = {
+            packages = [ pkgs.python314 ];
+            run = "python solution.py";
+          };
+          # qbasic = {}
+          r = {
+            packages = [ pkgs.R ];
+            run = "Rscript solution.R";
+          };
+          racket = {
+            packages = [ pkgs.racket-minimal ];
+            run = "racket solution.rkt";
+          };
+          # roc = {}
+          ruby = {
+            packages = [ pkgs.ruby ];
+            run = "ruby solution.rb";
+          };
+          rust = {
+            packages = [ pkgs.rustc ];
+            run = "cargo run --quiet --bin solution";
+          };
+          # scala = {}
+          # spl = {}
+          # sql = {}
+          # swift = {}
+          tcl = {
+            packages = [ pkgs.tcl ];
+            run = "tclsh solution.tcl";
+          };
+          uiua = {
+            packages = [ pkgs.uiua ];
+            run = "uiua run --no-color solution.ua";
+          };
+          v = {
+            packages = [ pkgs.vlang ];
+            run = "v run solution.v";
+          };
+          # wren = {}
+          # yasl = {}
+          zig = {
+            packages = [ pkgs.zig ];
+            run = "/bin/sh run.sh";
+          };
         };
+
+        devShells = builtins.mapAttrs (name: cfg:
+          pkgs.mkShell {
+            inherit (cfg) packages;
+          }
+        ) langs;
+
+        langMeta = builtins.mapAttrs (_: cfg: {
+          platform = cfg.platform or null;
+          run = cfg.run;
+        }) langs;
+      in {
+        devShells = devShells;
+        packages.langMeta = langMeta;
       }
     );
 }

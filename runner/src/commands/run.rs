@@ -14,8 +14,10 @@ pub fn run(example_name: Option<String>, part: Option<usize>, confirmation: Opti
     let mut context = RunContext::new(example_name, part, confirmation);
 
     if utils::has_devshell(&context.settings.language) {
+        println!("Executing nix solution....");
         context.execute_solution_nix();
     } else {
+        println!("Executing docker solution....");
         context.prepare_docker_container();
         context.execute_solution_docker();
     }
@@ -147,10 +149,18 @@ impl RunContext {
             exit(1);
         }
 
+        // Get the run command as defined in the flake
+        let run_command = Command::new("nix")
+            .arg("eval")
+            .arg("--raw")
+            .arg(format!(".#langMeta.{}.run", self.settings.language))
+            .output()
+            .expect("Failed to get run command for language");
+
         // Construct the command line as defined in the language config
         let full_command = format!(
             "{} {} {}",
-            &self.settings.language_config.run,
+            String::from_utf8_lossy(&run_command.stdout).to_string(),
             input_path.display(),
             &self.settings.part
         );

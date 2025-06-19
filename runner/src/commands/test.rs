@@ -121,6 +121,8 @@ fn create_and_run_example(lang: &str, worktree: &Worktree) -> Result<()> {
         .trim()
         .contains("Received 3 lines of input for part 1");
 
+    println!("{}", stdout);
+
     if passed {
         println!("\x1b[32m✅ {}\x1b[0m", lang);
         Ok(())

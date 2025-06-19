@@ -1,5 +1,4 @@
 # Immediate Work
-- Repair aoc test harness
 - Be explicit about nix flake, to avoid the searching up warning
 - Create nix devShells for currently-supported languages
 - Add gitignore for .txt files in solutions (and tweak telescope to ignore that)
@@ -7,9 +6,9 @@
 - Use kv .solutions file, rather than individual ones
 - Remove problems/
 - Promote solutions/<years>/ to <years>/
-- Move language run instructions to languages/config.toml or similar
 - Purge docker logic
 - Add support for 25+ new languages
+- Keep using docker for the languages that need x86 linux
 
 # Future Ideas
 - Enhance fetch to check problem for previously confirmed solutions
