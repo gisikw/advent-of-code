@@ -8,6 +8,9 @@
 - Purge old docker logic
 - Add support for 25+ new languages
 - Get test harness not to mangle current settings
+- Don't append to run command, rather let the run command operate on pre-arranged env vars
+- Rename spl -> shakespeare
+- Decouple shakespare from pip install
 
 # Future Ideas
 - Enhance fetch to check problem for previously confirmed solutions

@@ -16,12 +16,18 @@
             packages = [ pkgs.gnat ];
             run = "/bin/sh run.sh";
           };
-          # arturo = {}
+          # arturo = {
+          #   packages = [ ];
+          #   run = "arturo solution.art";
+          # };
           bash = {
             packages = [ pkgs.bash ]; 
             run = "bash solution.sh";
           };
-          # borgo = {}
+          # borgo = {
+          #   packages = [ ];
+          #   run = "/bin/sh run.sh";
+          # }
           c = {
             packages = [ pkgs.gcc ];
             run = "/bin/sh run.sh";
@@ -30,15 +36,18 @@
             packages = [ pkgs.clojure pkgs.openjdk ];
             run = "clojure -M -i solution.clj -m solution";
           };
-          # cobol = {}
+          cobol = {
+            packages = [ pkgs.gnu-cobol ];
+            run = "/bin/sh run.sh";
+          };
           crystal = {
             packages = [ pkgs.crystal ];
             run = "crystal run solution.cr --";
           };
-          # d = {
-          #   packages = [ pkgs.ldc ];
-          #   run = "/bin/sh run.sh";
-          # };
+          d = {
+            packages = [ pkgs.dmd ];
+            run = "/bin/sh run.sh";
+          };
           dart = {
             packages = [ pkgs.dart ];
             run = "dart solution.dart";
@@ -55,11 +64,14 @@
             packages = [ pkgs.gfortran ];
             run = "/bin/sh run.sh";
           };
-          # fsharp = {}
-          # gleam = {
-          #   packages = [ pkgs.gleam ];
-          #   run = "gleam run";
-          # };
+          fsharp = {
+            packages = [ pkgs.dotnet-sdk_8 ];
+            run = "dotnet fsi solution.fsx";
+          };
+          gleam = {
+            packages = [ pkgs.gleam pkgs.erlang ];
+            run = "gleam run";
+          };
           go = {
             packages = [ pkgs.go ];
             run = "go run solution.go";
@@ -76,7 +88,10 @@
             packages = [ pkgs.haxe ];
             run = "haxe --run Solution";
           };
-          # io = {}
+          # io = {
+          #   packages = [ pkgs.io ];
+          #   run = "io solution.io";
+          # };
           janet = {
             packages = [ pkgs.janet ];
             run = "janet solution.janet";
@@ -93,13 +108,22 @@
             packages = [ pkgs.kotlin ];
             run = "/bin/sh run.sh";
           };
-          # lobster = {}
-          # lolcode = {}
+          # lobster = {
+          #   packages = [ ];
+          #   run = "lobster solution.lobster --";
+          # };
+          # lolcode = {
+          #   packages = [ pkgs.lolcode ];
+          #   run = "/bin/sh run.sh";
+          # };
           lua = {
             packages = [ pkgs.lua ];
             run = "lua solution.lua";
           };
-          # miniscript = {}
+          # miniscript = {
+          #   packages = [ pkgs.miniscript] ;
+          #   run = "miniscript solution.ms";
+          # };
           moonscript = {
             packages = [ pkgs.luajitPackages.moonscript ];
             run = "moon solution.moon";
@@ -140,7 +164,10 @@
             packages = [ pkgs.python314 ];
             run = "python solution.py";
           };
-          # qbasic = {}
+          # qbasic = {
+          #   packages = [ pkgs.fbc ];
+          #   run = "/bin/sh run.sh";
+          # };
           r = {
             packages = [ pkgs.R ];
             run = "Rscript solution.R";
@@ -149,19 +176,36 @@
           #   packages = [ pkgs.racket-minimal ];
           #   run = "racket solution.rkt";
           # };
-          # roc = {}
+          # roc = {
+          #   packages = [ ];
+          #   run = "/bin/sh run.sh";
+          # }
           ruby = {
             packages = [ pkgs.ruby ];
             run = "ruby solution.rb";
           };
-          # rust = {
-          #   packages = [ pkgs.rustc ];
-          #   run = "cargo run --quiet --bin solution";
+          rust = {
+            packages = [ pkgs.rustc pkgs.cargo ];
+            run = "cargo run --quiet --bin solution";
+          };
+          # scala = {
+          #   packages = [ pkgs.scala pkgs.sbt pkgs.openjdk ];
+          #   run = "/bin/sh run.sh";
           # };
-          # scala = {}
-          # spl = {}
-          # sql = {}
-          # swift = {}
+          spl = {
+            packages = [
+              (pkgs.python311.withPackages (ps: [ ps.pip ]))
+            ];
+            run = "/bin/sh run.sh";
+          };
+          # sql = {
+          #   packages = [ ];
+          #   run = "/bin/sh run.sh";
+          # }
+          # swift = {
+          #   packages = [ pkgs.swift ];
+          #   run = "swift solution.swift";
+          # };
           tcl = {
             packages = [ pkgs.tcl ];
             run = "tclsh solution.tcl";
@@ -174,8 +218,14 @@
             packages = [ pkgs.vlang ];
             run = "v run solution.v";
           };
-          # wren = {}
-          # yasl = {}
+          # wren = {
+          #   packages = [ ];
+          #   run = "wren_cli solution.wren";
+          # };
+          # yasl = {
+          #   packages = [ ];
+          #   run = "yasl solution.yasl";
+          # }
           zig = {
             packages = [ pkgs.zig ];
             run = "/bin/sh run.sh";
