@@ -33,7 +33,11 @@ impl Worktree {
             return Err(anyhow!("git worktree add failed: {:?}", add));
         }
 
-        let modified = Command::new("git").arg("ls-files").arg("-m").output()?;
+        let modified_unstaged = Command::new("git").args(&["ls-files", "-m"]).output()?;
+
+        let modified_staged = Command::new("git")
+            .args(&["diff", "--name-only", "--cached"])
+            .output()?;
 
         let untracked = Command::new("git")
             .arg("ls-files")
@@ -42,7 +46,8 @@ impl Worktree {
             .output()?;
 
         let files = [
-            String::from_utf8(modified.stdout)?,
+            String::from_utf8(modified_unstaged.stdout)?,
+            String::from_utf8(modified_staged.stdout)?,
             String::from_utf8(untracked.stdout)?,
         ]
         .join("\n");

@@ -6,7 +6,7 @@ use serde_yaml::{Mapping, Sequence, Value};
 use std::collections::HashMap;
 use std::env;
 use std::fs;
-use std::io::{self, BufRead};
+use std::io::{self, BufRead, Read};
 use std::path::Path;
 use std::process::{exit, Command, Stdio};
 
@@ -134,71 +134,66 @@ impl RunContext {
     }
 
     fn execute_solution_nix(&mut self) {
-        use std::fs;
-        use std::path::PathBuf;
-
-        // Construct the real path to the input file
-        let input_path = fs::canonicalize(
-            PathBuf::from(&self.settings.problem_path)
-                .join(format!("{}.txt", &self.settings.example_name)),
-        )
-        .expect("Failed to resolve absolute input path");
-
-        if !input_path.exists() {
-            eprintln!("Input file not found: {}", input_path.display());
-            exit(1);
-        }
-
-        // Get the run command as defined in the flake
-        let run_command = Command::new("nix")
-            .arg("eval")
-            .arg("--raw")
-            .arg(format!(".#langMeta.{}.run", self.settings.language))
-            .output()
-            .expect("Failed to get run command for language");
-
-        // Construct the command line as defined in the language config
         let full_command = format!(
-            "{} {} {}",
-            String::from_utf8_lossy(&run_command.stdout).to_string(),
-            input_path.display(),
-            &self.settings.part
+            r#"
+            run_command=$(nix eval --raw /flake#langMeta.x86_64-linux.{lang}.run);
+            script -q -e -c "
+                nix develop /flake#{lang} --command sh -c \"
+                    printf '\033[F\n'
+                    $run_command /problem/{example}.txt {part}
+                \"
+            " /script;
+            tail -n 3 /script | head -n 1 > /out
+            "#,
+            lang = self.settings.language,
+            example = self.settings.example_name,
+            part = self.settings.part,
         );
+        let current_dir = env::current_dir().expect("Failed to get current dir");
+        let flake_path = current_dir.join("flake.nix");
+        let lock_path = current_dir.join("flake.lock");
 
-        // Launch via nix develop in the solution dir
-        let mut child = Command::new("nix")
-            .arg("develop")
-            .arg(format!(".#{}", self.settings.language))
-            .arg("-c")
-            .arg("sh")
-            .arg("-c")
-            .arg(&full_command)
-            .current_dir(&self.settings.solution_path)
-            .stdout(Stdio::piped())
-            .stderr(Stdio::inherit())
-            .spawn()
-            .expect("Failed to start nix shell");
+        let output = tempfile::NamedTempFile::new().expect("failed to create temp file");
+        let out_path = output
+            .path()
+            .to_str()
+            .expect("failed to generate temp path");
 
-        let stdout = child.stdout.take().expect("Failed to capture stdout");
-        let reader = io::BufReader::new(stdout);
+        let status = Command::new("docker")
+            .args(&["run", "--rm", "-t"])
+            .args(&["--platform", "linux/amd64"])
+            .args(&["-v", "aoc-nix:/nix"])
+            .arg("-v")
+            .arg(format!("{}:/flake/flake.nix:ro", flake_path.display()))
+            .arg("-v")
+            .arg(format!("{}:/flake/flake.lock:ro", lock_path.display()))
+            .arg("-v")
+            .arg(format!("{}:/problem", &self.settings.problem_path))
+            .arg("-v")
+            .arg(format!("{}:/code", &self.settings.solution_path))
+            .arg("-v")
+            .arg(format!("{}:/out", out_path))
+            .arg("aoc-nix-image")
+            .args(&["sh", "-c", &full_command])
+            .status()
+            .expect("Failed to execute Docker container");
 
-        let mut last_line = None;
-        for line in reader.lines() {
-            let line = line.expect("Failed to read line");
-            println!("{}", line);
-            last_line = Some(line);
-        }
-
-        let status = child.wait().expect("Failed to wait on nix process");
         if !status.success() {
             eprintln!(
-                "Nix run failed with exit code {}",
-                status.code().unwrap_or(1)
+                "Docker run failed with exit code {}",
+                status.code().unwrap()
             );
             exit(1);
         }
 
-        self.result = last_line;
+        let mut output_file = output.into_file();
+        let mut answer = String::new();
+        output_file
+            .read_to_string(&mut answer)
+            .expect("Failed to read answer from output file");
+
+        let answer = answer.trim_end();
+        self.result = Some(answer.to_string());
     }
 
     fn check_solution(&mut self) -> Option<bool> {

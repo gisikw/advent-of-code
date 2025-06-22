@@ -12,7 +12,10 @@
         pkgs = import nixpkgs { inherit system; };
 
         langs = {
-          # ada = {}
+          ada = {
+            packages = [ pkgs.gnat ];
+            run = "/bin/sh run.sh";
+          };
           # arturo = {}
           bash = {
             packages = [ pkgs.bash ]; 
@@ -32,10 +35,10 @@
             packages = [ pkgs.crystal ];
             run = "crystal run solution.cr --";
           };
-          d = {
-            packages = [ pkgs.ldc ];
-            run = "/bin/sh run.sh";
-          };
+          # d = {
+          #   packages = [ pkgs.ldc ];
+          #   run = "/bin/sh run.sh";
+          # };
           dart = {
             packages = [ pkgs.dart ];
             run = "dart solution.dart";
@@ -53,10 +56,10 @@
             run = "/bin/sh run.sh";
           };
           # fsharp = {}
-          gleam = {
-            packages = [ pkgs.gleam ];
-            run = "gleam run";
-          };
+          # gleam = {
+          #   packages = [ pkgs.gleam ];
+          #   run = "gleam run";
+          # };
           go = {
             packages = [ pkgs.go ];
             run = "go run solution.go";
@@ -142,19 +145,19 @@
             packages = [ pkgs.R ];
             run = "Rscript solution.R";
           };
-          racket = {
-            packages = [ pkgs.racket-minimal ];
-            run = "racket solution.rkt";
-          };
+          # racket = {
+          #   packages = [ pkgs.racket-minimal ];
+          #   run = "racket solution.rkt";
+          # };
           # roc = {}
           ruby = {
             packages = [ pkgs.ruby ];
             run = "ruby solution.rb";
           };
-          rust = {
-            packages = [ pkgs.rustc ];
-            run = "cargo run --quiet --bin solution";
-          };
+          # rust = {
+          #   packages = [ pkgs.rustc ];
+          #   run = "cargo run --quiet --bin solution";
+          # };
           # scala = {}
           # spl = {}
           # sql = {}
@@ -191,7 +194,8 @@
         }) langs;
       in {
         devShells = devShells;
-        packages.langMeta = langMeta;
+        packages = { };
+        langMeta = langMeta;
       }
     );
 }

@@ -1,34 +1,49 @@
+use anyhow::{Context, Result};
+use std::fs;
 use std::process::{exit, Command};
 
 pub fn run() {
-    println!("Rebuilding the aoc binary...");
+    if let Err(e) = try_run() {
+        eprintln!("Build error: {}", e);
+        exit(1);
+    }
+}
 
-    let status = Command::new("cargo")
+fn try_run() -> Result<()> {
+    println!("Rebuilding the aoc binary and execution container");
+
+    Command::new("cargo")
         .arg("build")
         .arg("--release")
         .current_dir("runner")
-        .status();
+        .status()?
+        .success()
+        .then_some(())
+        .context("Cargo build failed")?;
 
-    match status {
-        Ok(status) if status.success() => {
-            let copy_status = std::fs::copy("runner/target/release/aoc", "aoc");
-            match copy_status {
-                Ok(_) => {
-                    println!("aoc binary rebuilt successfully.");
-                }
-                Err(e) => {
-                    eprintln!("Failed to execute command: {}", e);
-                    exit(1);
-                }
-            }
-        }
-        Ok(status) => {
-            eprintln!("Command failed with exit code: {}", status);
-            exit(status.code().unwrap_or(1));
-        }
-        Err(e) => {
-            eprintln!("Failed to execute cargo build: {}", e);
-            exit(1);
-        }
-    }
+    fs::copy("runner/target/release/aoc", "aoc").context("Failed to copy aoc binary")?;
+
+    Command::new("docker")
+        .args(&["volume", "rm", "aoc-nix", "-f"])
+        .status()?
+        .success()
+        .then_some(())
+        .context("Docker volume removal failed")?;
+
+    Command::new("docker")
+        .args(&[
+            "build",
+            "--platform",
+            "linux/amd64",
+            "-t",
+            "aoc-nix-image",
+            ".",
+        ])
+        .status()?
+        .success()
+        .then_some(())
+        .context("Docker build failed")?;
+
+    println!("aoc binary rebuilt and Docker image refreshed.");
+    Ok(())
 }
