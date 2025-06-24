@@ -10,7 +10,7 @@ EOF
 RUN nix-env -iA nixpkgs.util-linux 
 
 # Copy in flake files for the purpose of warming dependencies into the image
-COPY flake.nix flake.lock /flake/
+COPY nix/ /flake/
 WORKDIR /flake
 RUN nix flake show >/dev/null 2>&1
 

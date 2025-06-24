@@ -150,8 +150,7 @@ impl RunContext {
             part = self.settings.part,
         );
         let current_dir = env::current_dir().expect("Failed to get current dir");
-        let flake_path = current_dir.join("flake.nix");
-        let lock_path = current_dir.join("flake.lock");
+        let flake_path = current_dir.join("nix");
 
         let output = tempfile::NamedTempFile::new().expect("failed to create temp file");
         let out_path = output
@@ -164,9 +163,7 @@ impl RunContext {
             .args(&["--platform", "linux/amd64"])
             .args(&["-v", "aoc-nix:/nix"])
             .arg("-v")
-            .arg(format!("{}:/flake/flake.nix:ro", flake_path.display()))
-            .arg("-v")
-            .arg(format!("{}:/flake/flake.lock:ro", lock_path.display()))
+            .arg(format!("{}:/flake/:ro", flake_path.display()))
             .arg("-v")
             .arg(format!("{}:/problem", &self.settings.problem_path))
             .arg("-v")
