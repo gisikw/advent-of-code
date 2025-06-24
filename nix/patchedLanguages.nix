@@ -40,18 +40,16 @@
     '';
   };
 
-  borgo = let
+  borgo = pkgs.rustPlatform.buildRustPackage rec {
+    pname = "borgo";
+    version = "unstable-2024-06-23";
+
     src = pkgs.fetchFromGitHub {
       owner = "borgo-lang";
       repo = "borgo";
       rev = "3b9f01578941fb00ed93756e2fadc009feb50128";
       sha256 = "sha256-KFBMu+uJbIxHWk2Q8wWMbuZ+oA+0mGzmywONWtqiMW4=";
     };
-  in pkgs.rustPlatform.buildRustPackage {
-    pname = "borgo";
-    version = "unstable-2024-06-23";
-
-    inherit src;
 
     cargoLock.lockFile = "${src}/Cargo.lock";
 
@@ -70,4 +68,49 @@
 
     doCheck = false;
   };
-};
+
+  io = pkgs.stdenv.mkDerivation rec {
+    pname = "io";
+    version = "2017-09-16";
+
+    glibc_no_ifunc = pkgs.glibc.overrideAttrs (old: {
+      pname = "glibc-no-ifunc";
+      configureFlags = (old.configureFlags or []) ++ [
+        "--disable-multi-arch"
+      ];
+    });
+
+    src = pkgs.fetchFromGitHub {
+      owner = "IoLanguage";
+      repo = "io";
+      rev = "b8a18fc199758ed09cd2f199a9bc821f6821072a";
+      sha256 = "sha256-Qwh8qYxANy3yO7F4sDTSQSm11uEkVBbChc9E8/MPLx8=";
+    };
+
+    buildInputs = [ pkgs.python3 glibc_no_ifunc ];
+    nativeBuildInputs = [ pkgs.cmake ];
+
+    configurePhase = ''
+      export CFLAGS="-D__GLIBC__"
+      export NIX_LDFLAGS="-L${glibc_no_ifunc.out}/lib"
+      cmake . -DCMAKE_INSTALL_PREFIX=$out
+    '';
+
+    patchPhase = ''
+      echo '#include <ucontext.h>' | cat - libs/coroutine/source/Coro.c > temp && mv temp libs/coroutine/source/Coro.c
+
+      substituteInPlace libs/iovm/source/IoSystem.c \
+        --replace '# include <sys/sysctl.h>' '// removed deprecated sysctl.h'
+
+      echo '#include "hmac.h"' | cat - addons/SHA1/source/IoSHA1.h > temp && mv temp addons/SHA1/source/IoSHA1.h
+    '';
+
+    fixupPhase = ''
+      find $out -type f -name '*.so' | while read f; do
+        if file "$f" | grep -q ELF; then
+          patchelf --set-rpath "$out/lib" "$f" || true
+        fi
+      done
+    '';
+  };
+}

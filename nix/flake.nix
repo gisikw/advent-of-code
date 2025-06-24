@@ -93,10 +93,10 @@
             packages = [ pkgs.haxe ];
             run = "haxe --run Solution";
           };
-          # io = {
-          #   packages = [ pkgs.io ];
-          #   run = "io solution.io";
-          # };
+          io = {
+            packages = [ patchedLanguages.io ];
+            run = "io solution.io";
+          };
           janet = {
             packages = [ pkgs.janet ];
             run = "janet solution.janet";
