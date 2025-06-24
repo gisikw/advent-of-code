@@ -4,22 +4,64 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     flake-utils.url = "github:numtide/flake-utils";
+    roc.url = "github:roc-lang/roc";
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
+  outputs = { self, nixpkgs, flake-utils, roc }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
+
+        langBins = {
+          arturo = pkgs.stdenv.mkDerivation {
+            pname = "arturo";
+            version = "0.9.83";
+
+            src = pkgs.fetchurl {
+              url = "https://github.com/arturo-lang/arturo/releases/download/v0.9.83/arturo-0.9.83-full-x86_64-linux.tar.gz";
+              sha256 = "sha256-cPxt673C53spHIosqv1iY7sp98YVlFIqGy2nXALFI2I=";
+            };
+
+            nativeBuildInputs = [
+              pkgs.autoPatchelfHook
+              pkgs.makeWrapper
+            ];
+            buildInputs = [
+              pkgs.mpfr
+              pkgs.gmp
+              pkgs.pcre
+              pkgs.gtk3
+              pkgs.webkitgtk
+              pkgs.stdenv.cc.cc.lib
+              pkgs.xorg.libxcb
+            ];
+
+            sourceRoot = "source";
+
+            unpackPhase = ''
+              mkdir source
+              tar -xzf $src -C source
+            '';
+
+            installPhase = ''
+              install -Dm755 arturo $out/libexec/arturo
+              makeWrapper $out/libexec/arturo $out/bin/arturo \
+                --set LD_LIBRARY_PATH ${pkgs.lib.makeLibraryPath [
+                  pkgs.pcre pkgs.gmp pkgs.mpfr pkgs.openssl
+                ]}
+            '';
+          };
+        };
 
         langs = {
           ada = {
             packages = [ pkgs.gnat ];
             run = "/bin/sh run.sh";
           };
-          # arturo = {
-          #   packages = [ ];
-          #   run = "arturo solution.art";
-          # };
+          arturo = {
+            packages = [ langBins.arturo ];
+            run = "cat solution.art; arturo solution.art";
+          };
           bash = {
             packages = [ pkgs.bash ]; 
             run = "bash solution.sh";
@@ -165,21 +207,25 @@
             run = "python solution.py";
           };
           # qbasic = {
-          #   packages = [ pkgs.fbc ];
+          #   packages = [ 
+          #     pkgs.fbc 
+          #     (pkgs.ncurses5.override { enableStatic = true; })
+          #     pkgs.glibc.static
+          #   ];
           #   run = "/bin/sh run.sh";
           # };
           r = {
             packages = [ pkgs.R ];
             run = "Rscript solution.R";
           };
-          # racket = {
-          #   packages = [ pkgs.racket-minimal ];
-          #   run = "racket solution.rkt";
-          # };
+          racket = {
+            packages = [ pkgs.racket ];
+            run = "racket solution.rkt";
+          };
           # roc = {
-          #   packages = [ ];
+          #   packages = [ roc.packages.${system}.default ];
           #   run = "/bin/sh run.sh";
-          # }
+          # };
           ruby = {
             packages = [ pkgs.ruby ];
             run = "ruby solution.rb";
