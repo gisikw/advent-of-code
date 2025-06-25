@@ -167,7 +167,7 @@ pub fn has_devshell(lang: &str) -> bool {
         _ => return false, // TODO: Better to panic here
     };
 
-    let attr = format!(".#devShells.{}.{}", system, lang);
+    let attr = format!("./nix#devShells.{}.{}", system, lang);
     let check = Command::new("nix")
         .args(&["eval", &attr, "--quiet"])
         .output();

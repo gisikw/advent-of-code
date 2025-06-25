@@ -113,14 +113,14 @@
             packages = [ pkgs.kotlin ];
             run = "/bin/sh run.sh";
           };
-          # lobster = {
-          #   packages = [ ];
-          #   run = "lobster solution.lobster --";
-          # };
-          # lolcode = {
-          #   packages = [ pkgs.lolcode ];
-          #   run = "/bin/sh run.sh";
-          # };
+          lobster = {
+            packages = [ pkgs.lobster ];
+            run = "lobster solution.lobster --";
+          };
+          lolcode = {
+            packages = [ patchedLanguages.lolcode ];
+            run = "/bin/sh run.sh";
+          };
           lua = {
             packages = [ pkgs.lua ];
             run = "lua solution.lua";

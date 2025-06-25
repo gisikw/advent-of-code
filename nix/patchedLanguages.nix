@@ -113,4 +113,29 @@
       done
     '';
   };
+
+  lolcode = pkgs.stdenv.mkDerivation rec {
+    pname = "lolcode";
+    version = "1.4";
+
+    src = pkgs.fetchFromGitHub {
+      owner = "justinmeza";
+      repo = "lci";
+      rev = "327f001df0005ca4f48eb88c58b67c88add46dfd";
+      sha256 = "sha256-wQw2mfcma9NKf9NlWJGWII+DxrnmDXBOm0z3aDq2VFs=";
+    };
+
+    nativeBuildInputs = [ pkgs.cmake ];
+    buildInputs = [
+      pkgs.python3
+      pkgs.readline
+    ];
+
+    configurePhase = ''
+      cmake . -DCMAKE_INSTALL_PREFIX=$out
+    '';
+
+    buildPhase = "make";
+    installPhase = "make install";
+  };
 }
