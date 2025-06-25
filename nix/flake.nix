@@ -230,10 +230,10 @@
             packages = [ pkgs.vlang ];
             run = "v run solution.v";
           };
-          # wren = {
-          #   packages = [ ];
-          #   run = "wren_cli solution.wren";
-          # };
+          wren = {
+            packages = [ patchedLanguages.wren ];
+            run = "wren_cli solution.wren";
+          };
           yasl = {
             packages = [ patchedLanguages.yasl ];
             run = "yasl solution.yasl";

@@ -13,6 +13,13 @@
 - Decouple shakespare from pip install
 - See about removing run.sh's where we can
 
+# Languages to add
+- Whitespace
+- Curry
+- Atomy
+- Velato
+- Piet
+
 # Future Ideas
 - Enhance fetch to check problem for previously confirmed solutions
 - Detect an empty last line of STDOUT for easy submission/save-skipping

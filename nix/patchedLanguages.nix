@@ -155,4 +155,30 @@
       install -Dm755 yasl $out/bin/yasl
     '';
   };
+
+  wren = pkgs.stdenv.mkDerivation {
+    pname = "wren-cli";
+    version = "0.4.0";
+
+    src = pkgs.fetchFromGitHub {
+      owner = "wren-lang";
+      repo = "wren-cli";
+      rev = "0.4.0";
+      sha256 = "sha256-AUb17rV07r00SpcXAOb9PY8Ea2nxtgdZzHZdzfX5pOA=";
+    };
+
+    patchPhase = ''
+      substituteInPlace src/cli/vm.c --replace "static void write(" "static void wren_write("
+      substituteInPlace src/cli/vm.c --replace "config.writeFn = write" "config.writeFn = wren_write"
+    '';
+
+    buildPhase = ''
+      make -C projects/make
+    '';
+
+    installPhase = ''
+      mkdir -p $out/bin
+      install -Dm755 ./bin/wren_cli $out/bin/wren_cli
+    '';
+  };
 }
