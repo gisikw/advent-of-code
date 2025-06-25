@@ -197,10 +197,13 @@
             packages = [ pkgs.rustc pkgs.cargo ];
             run = "cargo run --quiet --bin solution";
           };
-          # scala = {
-          #   packages = [ pkgs.scala pkgs.sbt pkgs.openjdk ];
-          #   run = "/bin/sh run.sh";
-          # };
+          scala = {
+            packages = [ pkgs.scala ];
+            run = ''
+              scalac -d . solution.scala
+              scala aoc.Solution "$1" "$2"
+            '';
+          };
           spl = {
             packages = [
               (pkgs.python311.withPackages (ps: [ ps.pip ]))

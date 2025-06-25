@@ -1,10 +1,11 @@
 package aoc
 
-object Solution extends App {
-  val inputFile = args(0)
-  val part = args(1)
-  val lines = scala.io.Source.fromFile(inputFile).getLines().toList
-  val linesCount = lines.length
+object Solution {
+  def main(args: Array[String]): Unit = {
+    val inputFile = args(0)
+    val part = args(1)
+    val content = scala.io.Source.fromFile(inputFile).getLines().toList
 
-  println(s"Received $linesCount lines of input for part $part")
+    println(s"Received ${content.length} lines of input for part $part")
+  }
 }

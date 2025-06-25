@@ -11,6 +11,7 @@
 - Don't append to run command, rather let the run command operate on pre-arranged env vars
 - Rename spl -> shakespeare
 - Decouple shakespare from pip install
+- See about removing run.sh's where we can
 
 # Future Ideas
 - Enhance fetch to check problem for previously confirmed solutions
