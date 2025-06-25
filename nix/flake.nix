@@ -234,10 +234,10 @@
           #   packages = [ ];
           #   run = "wren_cli solution.wren";
           # };
-          # yasl = {
-          #   packages = [ ];
-          #   run = "yasl solution.yasl";
-          # }
+          yasl = {
+            packages = [ patchedLanguages.yasl ];
+            run = "yasl solution.yasl";
+          };
           zig = {
             packages = [ pkgs.zig ];
             run = "/bin/sh run.sh";

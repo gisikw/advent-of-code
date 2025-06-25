@@ -2,6 +2,11 @@ const input_file = args[1]
 const part = args[2]
 
 const f = io.open(input_file)
-const line_count = len(f->read('a')->rtrim()->split('\n'))
+let line = f->read('l')
+let line_count = 0
+while (line) {
+  line_count += 1
+  line = f->read('l')
+}
 
-echo "Received #{line_count} lines of input for part #{part}"
+ echo "Received #{line_count} lines of input for part #{part}"

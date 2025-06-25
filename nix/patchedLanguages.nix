@@ -126,16 +126,33 @@
     };
 
     nativeBuildInputs = [ pkgs.cmake ];
-    buildInputs = [
-      pkgs.python3
-      pkgs.readline
-    ];
+    buildInputs = [ pkgs.python3 pkgs.readline ];
+  };
 
-    configurePhase = ''
-      cmake . -DCMAKE_INSTALL_PREFIX=$out
+  yasl = pkgs.stdenv.mkDerivation {
+    pname = "yasl";
+    version = "0.13.7";
+
+    src = pkgs.fetchzip {
+      url = "https://github.com/yasl-lang/yasl/archive/refs/tags/v0.13.7.zip";
+      sha256 = "sha256-w9o+5hpcGzZ0pO5zWwBFNuZ/xR0I4oK8a/Z94e75qno=";
+    };
+
+    nativeBuildInputs = [ pkgs.cmake ];
+
+    preConfigure = ''
+      find . -name CMakeLists.txt -exec sed -i \
+        -e 's/-Werror//g' \
+        -e 's/-Wno-pedantic-ms-format//g' \
+        -e 's/-Wno-logical-op-parentheses//g' \
+        -e 's/-Wno=vla//g' \
+        -e 's/-Wno-vla//g' \
+        -e 's/=vla//g' {} +
     '';
 
-    buildPhase = "make";
-    installPhase = "make install";
+    installPhase = ''
+      mkdir -p $out/bin
+      install -Dm755 yasl $out/bin/yasl
+    '';
   };
 }
