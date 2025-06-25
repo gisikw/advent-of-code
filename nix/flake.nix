@@ -125,10 +125,10 @@
             packages = [ pkgs.lua ];
             run = "lua solution.lua";
           };
-          # miniscript = {
-          #   packages = [ pkgs.miniscript] ;
-          #   run = "miniscript solution.ms";
-          # };
+          miniscript = {
+            packages = [ patchedLanguages.miniscript] ;
+            run = "miniscript solution.ms";
+          };
           moonscript = {
             packages = [ pkgs.luajitPackages.moonscript ];
             run = "moon solution.moon";

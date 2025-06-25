@@ -129,6 +129,20 @@
     buildInputs = [ pkgs.python3 pkgs.readline ];
   };
 
+  miniscript = pkgs.stdenv.mkDerivation {
+    pname = "miniscript";
+    version = "v1.6.2";
+
+    src = pkgs.fetchFromGitHub {
+      owner = "JoeStrout";
+      repo = "miniscript";
+      rev = "v1.6.2";
+      sha256 = "sha256-uD3+Nj33mXScp5Pbzo0Rhd6XesaDvXr/8vZi+vetVd4=";
+    };
+
+    nativeBuildInputs = [ pkgs.cmake ];
+  };
+
   yasl = pkgs.stdenv.mkDerivation {
     pname = "yasl";
     version = "0.13.7";
