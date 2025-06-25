@@ -169,14 +169,10 @@
             packages = [ pkgs.python314 ];
             run = "python solution.py";
           };
-          # qbasic = {
-          #   packages = [ 
-          #     pkgs.fbc 
-          #     (pkgs.ncurses5.override { enableStatic = true; })
-          #     pkgs.glibc.static
-          #   ];
-          #   run = "/bin/sh run.sh";
-          # };
+          qbasic = {
+            packages = [ pkgs.yabasic ];
+            run = "yabasic solution.bas";
+          };
           r = {
             packages = [ pkgs.R ];
             run = "Rscript solution.R";
