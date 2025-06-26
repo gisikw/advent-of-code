@@ -206,10 +206,10 @@
             ];
             run = "/bin/sh run.sh";
           };
-          # sql = {
-          #   packages = [ ];
-          #   run = "/bin/sh run.sh";
-          # }
+          sql = {
+            packages = [ pkgs.sqlite ];
+            run = "/bin/sh run.sh";
+          };
           # swift = {
           #   packages = [ pkgs.swift ];
           #   run = "swift solution.swift";
