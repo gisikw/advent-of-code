@@ -1,5 +1,4 @@
 # Immediate Work
-- Create nix devShells for currently-supported languages
 - Add gitignore for .txt files in solutions (and tweak telescope to ignore that)
 - Move inputs into solutions
 - Use kv .solutions file, rather than individual ones

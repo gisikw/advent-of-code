@@ -210,10 +210,22 @@
             packages = [ pkgs.sqlite ];
             run = "/bin/sh run.sh";
           };
-          # swift = {
-          #   packages = [ pkgs.swift ];
-          #   run = "swift solution.swift";
-          # };
+          swift = {
+            customShell = pkgs.mkShell.override { inherit (pkgs.swift) stdenv; } {
+              buildInputs = [
+                pkgs.swift
+                pkgs.swiftPackages.Foundation
+                pkgs.swiftPackages.Dispatch
+              ];
+              shellHook = ''
+                export LD_LIBRARY_PATH="${pkgs.swiftPackages.Dispatch}/lib"
+              '';
+            };
+            run = ''
+              swiftc solution.swift
+              ./solution "$1" "$2"
+            '';
+          };
           tcl = {
             packages = [ pkgs.tcl ];
             run = "tclsh solution.tcl";
@@ -241,9 +253,12 @@
         };
 
         devShells = builtins.mapAttrs (name: cfg:
-          pkgs.mkShell {
-            inherit (cfg) packages;
-          }
+          if cfg ? customShell then
+            cfg.customShell
+          else
+            pkgs.mkShell {
+              inherit (cfg) packages;
+            }
         ) langs;
 
         langMeta = builtins.mapAttrs (_: cfg: {
