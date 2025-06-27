@@ -1,4 +1,4 @@
-use crate::utils::{self, LanguageConfig};
+use crate::utils::{self};
 use md5;
 use regex::Regex;
 use reqwest::blocking::Client;
@@ -6,22 +6,14 @@ use serde_yaml::{Mapping, Sequence, Value};
 use std::collections::HashMap;
 use std::env;
 use std::fs;
-use std::io::{self, BufRead, Read};
+use std::io::Read;
 use std::path::Path;
-use std::process::{exit, Command, Stdio};
+use std::process::{exit, Command};
 
 pub fn run(example_name: Option<String>, part: Option<usize>, confirmation: Option<bool>) {
     let mut context = RunContext::new(example_name, part, confirmation);
 
-    if utils::has_devshell(&context.settings.language) {
-        println!("Executing nix solution....");
-        context.execute_solution_nix();
-    } else {
-        println!("Executing docker solution....");
-        context.prepare_docker_container();
-        context.execute_solution_docker();
-    }
-
+    context.execute_solution();
     if context.check_solution().is_none() {
         if context.submit_solution() {
             context.save_solution();
@@ -37,13 +29,11 @@ struct Settings {
     solution_path: String,
     example_name: String,
     part: usize,
-    language_config: LanguageConfig,
     confirmation: Option<bool>,
 }
 
 struct RunContext {
     settings: Settings,
-    docker_image_ref: Option<String>,
     result: Option<String>,
     solutions_data: Option<Value>,
 }
@@ -58,82 +48,16 @@ impl RunContext {
                 language: lang.clone(),
                 problem_path: format!("./problems/{}/{:02}", year, day),
                 solution_path: format!("./solutions/{}/{:02}/{}", year, day, lang),
-                language_config: utils::get_language_config(&lang).unwrap(),
                 example_name: example_name.unwrap_or("input".to_string()),
                 part: part.unwrap_or(1),
                 confirmation,
             },
-            docker_image_ref: None,
             result: None,
             solutions_data: None,
         }
     }
 
-    fn prepare_docker_container(&mut self) {
-        let solution_path = &self.settings.solution_path;
-        let language = &self.settings.language;
-
-        let dockerfile = Path::new(solution_path).join("Dockerfile");
-        let docker_ref_file = Path::new(solution_path).join(".docker-image-ref");
-
-        self.docker_image_ref = if dockerfile.exists() {
-            Some(verify_dockerfile(&dockerfile, language))
-        } else if docker_ref_file.exists() {
-            Some(verify_docker_ref_file(&docker_ref_file))
-        } else {
-            Some(create_docker_ref_file(&docker_ref_file, language))
-        }
-    }
-
-    fn execute_solution_docker(&mut self) {
-        let full_command = format!(
-            "{} /problem/{}.txt {}",
-            &self.settings.language_config.run, &self.settings.example_name, &self.settings.part
-        );
-
-        let mut child = Command::new("docker")
-            .arg("run")
-            .arg("--rm")
-            .arg("-t")
-            .arg("-v")
-            .arg(format!("{}:/problem", &self.settings.problem_path))
-            .arg("-v")
-            .arg(format!("{}:/solution", &self.settings.solution_path))
-            .arg("-w")
-            .arg("/solution")
-            .arg(self.docker_image_ref.as_ref().unwrap())
-            .arg("sh")
-            .arg("-c")
-            .arg(full_command)
-            .stdout(Stdio::piped())
-            .stderr(Stdio::inherit())
-            .spawn()
-            .expect("Failed to execute Docker container");
-
-        let stdout = child.stdout.take().expect("Failed to capture stdout");
-        let reader = io::BufReader::new(stdout);
-
-        let mut last_line = None;
-        for line in reader.lines() {
-            let line = line.expect("Failed to read line");
-            println!("{}", line);
-            last_line = Some(line);
-        }
-
-        let status = child.wait().expect("Failed to wait for child process");
-
-        if !status.success() {
-            eprintln!(
-                "Docker run failed with exit code {}",
-                status.code().unwrap()
-            );
-            exit(1);
-        }
-
-        self.result = last_line;
-    }
-
-    fn execute_solution_nix(&mut self) {
+    fn execute_solution(&mut self) {
         let full_command = format!(
             r#"
             run_command=$(nix eval --raw /flake#langMeta.x86_64-linux.{lang}.run);
@@ -367,107 +291,4 @@ impl RunContext {
             self.result.as_ref().unwrap().to_string(),
         );
     }
-}
-
-fn verify_dockerfile(dockerfile: &Path, lang: &String) -> String {
-    let content = fs::read_to_string(dockerfile).expect("Failed to read Dockerfile");
-    let docker_tag = format!("aoc_{}:{:x}", lang, md5::compute(content));
-
-    let output = Command::new("docker")
-        .args(&["images", "-q", &docker_tag])
-        .output()
-        .expect("Failed to check Docker image");
-
-    if output.stdout.is_empty() {
-        println!("Dockerfile has changed or new build required. Building image...");
-        let status = Command::new("docker")
-            .args(&[
-                "buildx",
-                "build",
-                "-t",
-                &docker_tag,
-                "-f",
-                dockerfile.to_str().unwrap(),
-                ".",
-            ])
-            .stdout(Stdio::inherit())
-            .stderr(Stdio::inherit())
-            .status()
-            .expect("Failed to build Docker image");
-
-        if !status.success() {
-            eprintln!(
-                "Docker build failed with exit code {}",
-                status.code().unwrap()
-            );
-            exit(1);
-        }
-    }
-
-    docker_tag
-}
-
-fn verify_docker_ref_file(docker_ref_file: &Path) -> String {
-    let content = fs::read_to_string(docker_ref_file).expect("Failed to read Dockerfile");
-    let docker_tag = content.trim_end().to_string();
-
-    let output = Command::new("docker")
-        .args(&["images", "-q", &docker_tag])
-        .output()
-        .expect("Failed to check Docker image");
-
-    if output.stdout.is_empty() {
-        println!("Docker image not found locally. Pulling from registry...");
-        let status = Command::new("docker")
-            .args(&["pull", &docker_tag])
-            .stdout(Stdio::inherit())
-            .stderr(Stdio::inherit())
-            .status()
-            .expect("Failed to pull Docker image");
-
-        if !status.success() {
-            eprintln!(
-                "Docker pull failed with exit code {}",
-                status.code().unwrap()
-            );
-            exit(1);
-        }
-    }
-
-    docker_tag
-}
-
-fn create_docker_ref_file(docker_ref_file: &Path, lang: &String) -> String {
-    println!("No cached image reference found. Pulling base image from registry...");
-    let lang_config: LanguageConfig = utils::get_language_config(&lang).unwrap();
-    let base_image = lang_config.container.unwrap();
-
-    let status = Command::new("docker")
-        .args(&["pull", &base_image])
-        .stdout(Stdio::inherit())
-        .stderr(Stdio::inherit())
-        .status()
-        .expect("Failed to pull Docker image");
-
-    if !status.success() {
-        eprintln!(
-            "Docker pull failed with exit code {}",
-            status.code().unwrap()
-        );
-        exit(1);
-    }
-
-    let output = Command::new("docker")
-        .args(&[
-            "inspect",
-            "--format",
-            "{{index .RepoDigests 0}}",
-            &base_image,
-        ])
-        .output()
-        .expect("Failed to check Docker image");
-
-    let image_ref = String::from_utf8_lossy(&output.stdout).to_string();
-    fs::write(docker_ref_file, &image_ref).expect("Failed to write Docker image reference");
-    image_ref.trim_end().to_string()
 }

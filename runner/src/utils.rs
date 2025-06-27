@@ -8,7 +8,6 @@ use std::fs;
 use std::io::{self, Write};
 use std::path::Path;
 use std::path::PathBuf;
-use std::process::Command;
 
 #[derive(Debug, Deserialize)]
 struct Config {
@@ -16,10 +15,7 @@ struct Config {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub struct LanguageConfig {
-    pub container: Option<String>,
-    pub run: String,
-}
+pub struct LanguageConfig {}
 
 pub fn get_aoc_tempfile_path() -> PathBuf {
     PathBuf::from("/tmp/aoc_env")
@@ -31,14 +27,6 @@ pub fn get_supported_languages() -> Vec<String> {
     let config: Config = serde_yaml::from_str(&config_content).unwrap();
 
     config.languages.keys().cloned().collect::<Vec<String>>()
-}
-
-pub fn get_language_config(lang: &str) -> Option<LanguageConfig> {
-    let config_path = Path::new("config.yml");
-    let config_content = fs::read_to_string(config_path).unwrap();
-    let config: Config = serde_yaml::from_str(&config_content).unwrap();
-
-    config.languages.get(lang).cloned()
 }
 
 pub fn resolve_aoc_settings(
@@ -147,30 +135,4 @@ pub fn copy_dir_all(src: &Path, dst: &Path) -> io::Result<()> {
         }
     }
     Ok(())
-}
-
-pub fn has_devshell(lang: &str) -> bool {
-    let system_output = Command::new("nix")
-        .args(&[
-            "eval",
-            "--raw",
-            "--impure",
-            "--expr",
-            "builtins.currentSystem",
-        ])
-        .output();
-
-    let system = match system_output {
-        Ok(output) if output.status.success() => {
-            String::from_utf8_lossy(&output.stdout).trim().to_string()
-        }
-        _ => return false, // TODO: Better to panic here
-    };
-
-    let attr = format!("./nix#devShells.{}.{}", system, lang);
-    let check = Command::new("nix")
-        .args(&["eval", &attr, "--quiet"])
-        .output();
-
-    matches!(check, Ok(output) if output.status.success())
 }

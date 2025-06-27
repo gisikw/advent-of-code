@@ -11,6 +11,7 @@
 - Rename spl -> shakespeare
 - Decouple shakespare from pip install
 - See about removing run.sh's where we can
+- Make patchedLanguages.nix support customShells and customPackages
 
 # Languages to add
 - Whitespace

@@ -11,7 +11,7 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
-        patchedLanguages = import ./patchedLanguages.nix { 
+        langOverrides = import ./langOverrides.nix { 
           pkgs = pkgs;
           lib = nixpkgs.lib;
         };
@@ -22,15 +22,15 @@
             run = "/bin/sh run.sh";
           };
           arturo = {
-            packages = [ patchedLanguages.arturo ];
-            run = "cat solution.art; arturo solution.art";
+            packages = [];
+            run = "arturo solution.art";
           };
           bash = {
             packages = [ pkgs.bash ]; 
             run = "bash solution.sh";
           };
           borgo = {
-            packages = [ patchedLanguages.borgo pkgs.go ];
+            packages = [ pkgs.go ];
             run = "/bin/sh run.sh";
           };
           c = {
@@ -94,7 +94,7 @@
             run = "haxe --run Solution";
           };
           io = {
-            packages = [ patchedLanguages.io ];
+            packages = [];
             run = "io solution.io";
           };
           janet = {
@@ -118,7 +118,7 @@
             run = "lobster solution.lobster --";
           };
           lolcode = {
-            packages = [ patchedLanguages.lolcode ];
+            packages = [];
             run = "/bin/sh run.sh";
           };
           lua = {
@@ -126,7 +126,7 @@
             run = "lua solution.lua";
           };
           miniscript = {
-            packages = [ patchedLanguages.miniscript] ;
+            packages = [] ;
             run = "miniscript solution.ms";
           };
           moonscript = {
@@ -239,11 +239,11 @@
             run = "v run solution.v";
           };
           wren = {
-            packages = [ patchedLanguages.wren ];
+            packages = [];
             run = "wren_cli solution.wren";
           };
           yasl = {
-            packages = [ patchedLanguages.yasl ];
+            packages = [];
             run = "yasl solution.yasl";
           };
           zig = {
@@ -253,12 +253,18 @@
         };
 
         devShells = builtins.mapAttrs (name: cfg:
-          if cfg ? customShell then
-            cfg.customShell
-          else
-            pkgs.mkShell {
-              inherit (cfg) packages;
-            }
+          let
+            override = nixpkgs.lib.attrByPath [name] null langOverrides;
+          in
+            if override != null && override ? customShell then
+              override.customShell
+            else
+              let
+                extraPkgs = if override != null && override ? extraPkgs then override.extraPkgs else [ ];
+                in
+                  pkgs.mkShell {
+                    packages = cfg.packages ++ extraPkgs;
+                  }
         ) langs;
 
         langMeta = builtins.mapAttrs (_: cfg: {
