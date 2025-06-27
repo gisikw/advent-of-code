@@ -63,6 +63,8 @@ impl RunContext {
             run_command=$(nix eval --raw /infra#langMeta.x86_64-linux.{lang}.run);
             script -q -e -c "
                 nix develop /infra#{lang} --command sh -c \"
+                    set -euo pipefail
+
                     # Separate nix noise from output
                     printf '\033[F\n'
 
