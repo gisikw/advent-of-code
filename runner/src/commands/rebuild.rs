@@ -37,7 +37,7 @@ fn try_run() -> Result<()> {
             "linux/amd64",
             "-t",
             "aoc-nix-image",
-            ".",
+            "./infra",
         ])
         .status()?
         .success()

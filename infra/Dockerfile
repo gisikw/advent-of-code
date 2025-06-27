@@ -10,8 +10,8 @@ EOF
 RUN nix-env -iA nixpkgs.util-linux 
 
 # Copy in flake files for the purpose of warming dependencies into the image
-COPY nix/ /flake/
-WORKDIR /flake
+COPY . /infra/
+WORKDIR /infra
 RUN nix flake show >/dev/null 2>&1
 
 # Declare /nix as a volume to persist the store across runs

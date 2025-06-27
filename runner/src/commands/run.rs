@@ -60,9 +60,9 @@ impl RunContext {
     fn execute_solution(&mut self) {
         let full_command = format!(
             r#"
-            run_command=$(nix eval --raw /flake#langMeta.x86_64-linux.{lang}.run);
+            run_command=$(nix eval --raw /infra#langMeta.x86_64-linux.{lang}.run);
             script -q -e -c "
-                nix develop /flake#{lang} --command sh -c \"
+                nix develop /infra#{lang} --command sh -c \"
                     printf '\033[F\n'
                     $run_command /problem/{example}.txt {part}
                 \"
@@ -74,7 +74,7 @@ impl RunContext {
             part = self.settings.part,
         );
         let current_dir = env::current_dir().expect("Failed to get current dir");
-        let flake_path = current_dir.join("nix");
+        let infra_path = current_dir.join("infra");
 
         let output = tempfile::NamedTempFile::new().expect("failed to create temp file");
         let out_path = output
@@ -87,7 +87,7 @@ impl RunContext {
             .args(&["--platform", "linux/amd64"])
             .args(&["-v", "aoc-nix:/nix"])
             .arg("-v")
-            .arg(format!("{}:/flake/:ro", flake_path.display()))
+            .arg(format!("{}:/infra/:ro", infra_path.display()))
             .arg("-v")
             .arg(format!("{}:/problem", &self.settings.problem_path))
             .arg("-v")
