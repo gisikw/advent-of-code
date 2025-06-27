@@ -211,16 +211,7 @@
             run = "/bin/sh run.sh";
           };
           swift = {
-            customShell = pkgs.mkShell.override { inherit (pkgs.swift) stdenv; } {
-              buildInputs = [
-                pkgs.swift
-                pkgs.swiftPackages.Foundation
-                pkgs.swiftPackages.Dispatch
-              ];
-              shellHook = ''
-                export LD_LIBRARY_PATH="${pkgs.swiftPackages.Dispatch}/lib"
-              '';
-            };
+            packages = [];
             run = ''
               swiftc solution.swift
               ./solution "$1" "$2"

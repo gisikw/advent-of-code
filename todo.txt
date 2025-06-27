@@ -12,6 +12,7 @@
 - Decouple shakespare from pip install
 - See about removing run.sh's where we can
 - Make patchedLanguages.nix support customShells and customPackages
+- aoc test is not resilient to staged file deletions
 
 # Languages to add
 - Whitespace
