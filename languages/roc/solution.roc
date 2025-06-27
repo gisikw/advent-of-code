@@ -1,41 +1,24 @@
-app [main] { pf: platform "https://github.com/roc-lang/basic-cli/releases/download/0.17.0/lZFLstMUCUvd5bjnnpYromZJXkQUrdhbva4xdBInicE.tar.br" }
+app [main!] { 
+    pf: platform "https://github.com/roc-lang/basic-cli/releases/download/0.19.0/Hj-J_zxz7V9YurCSTFcFdu6cQJie4guzsPMUi5kBYUk.tar.br" 
+}
 
 import pf.Stdout
-import pf.Env
-import pf.Path exposing [Path]
+import pf.Path
+import pf.Arg
 
-main =
-    filename = readEnvVar! "FILENAME"
-    part = readEnvVar! "PART"
+main! = |raw_args|
+    args = List.map(raw_args, Arg.display)
+    filename = List.get args 1 |> Result.with_default ""
+    part = List.get args 2 |> Result.with_default ""
 
-    content = readFileToStr! (Path.fromStr filename)
-    newlineCount = Str.splitOn content "\n" |> List.len
-    lineCount = newlineCount - 1 |> Num.toStr
+    lineCount =
+        filename
+        |> Path.from_str
+        |> Path.read_utf8!
+        |> Result.with_default ""
+        |> Str.trim_end
+        |> Str.split_on "\n"
+        |> List.len
+        |> Num.to_str
 
-    Stdout.line "Received $(lineCount) lines of input for part $(part)"
-
-readEnvVar : Str -> Task Str []
-readEnvVar = \envVarName ->
-    when Env.var envVarName |> Task.result! is
-        Ok envVarStr if !(Str.isEmpty envVarStr) ->
-            Task.ok envVarStr
-        _ ->
-            Task.ok ""
-
-readFileToStr : Path -> Task Str [ReadFileErr Str]_
-readFileToStr = \path ->
-    path
-    |> Path.readUtf8
-    |> Task.mapErr
-        (\fileReadErr ->
-            pathStr = Path.display path
-
-            when fileReadErr is
-                FileReadErr _ readErr ->
-                    readErrStr = Inspect.toStr readErr
-
-                    ReadFileErr "Failed to read file:\n\t$(pathStr)\nWith error:\n\t$(readErrStr)"
-
-                FileReadUtf8Err _ _ ->
-                    ReadFileErr "Error reading file"
-        )
+    Stdout.line! "Received $(lineCount) lines of input for part $(part)"

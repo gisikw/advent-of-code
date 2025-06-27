@@ -181,10 +181,10 @@
             packages = [ pkgs.racket ];
             run = "racket solution.rkt";
           };
-          # roc = {
-          #   packages = [ roc.packages.${system}.default ];
-          #   run = "/bin/sh run.sh";
-          # };
+          roc = {
+            packages = [ roc.packages.${system}.default ];
+            run = "roc run solution.roc --";
+          };
           ruby = {
             packages = [ pkgs.ruby ];
             run = "ruby solution.rb";
