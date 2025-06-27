@@ -1,0 +1,235 @@
+# Language configuration for Advent of Code runner
+#
+# Each section defines a supported language with:
+# - packages: a list of required Nix package names
+# - run: the command to execute the solution with two arguments:
+#        input file and part
+#
+# This file is parsed both by the Nix flake and the Rust runner,
+# and should remain free of platform-specific overrides or env tricks.
+#
+# For custom derivations (e.g. missing packages, patched builds, or
+# quirky environments like Swift), see: langCustom.nix
+
+[ada]
+packages = ["gnat"]
+run = "/bin/sh run.sh"
+
+[arturo]
+customized = true
+run = "arturo solution.art"
+
+[bash]
+packages = ["bash"]
+run = "bash solution.sh"
+
+[borgo]
+customized = true
+packages = ["go"]
+run = "/bin/sh run.sh"
+
+[c]
+packages = ["gcc"]
+run = "/bin/sh run.sh"
+
+[clojure]
+packages = ["clojure", "openjdk"]
+run = "clojure -M -i solution.clj -m solution"
+
+[cobol]
+packages = ["gnu-cobol"]
+run = "/bin/sh run.sh"
+
+[crystal]
+packages = ["crystal"]
+run = "crystal run solution.cr --"
+
+[d]
+packages = ["dmd"]
+run = "/bin/sh run.sh"
+
+[dart]
+packages = ["dart"]
+run = "dart solution.dart"
+
+[elixir]
+packages = ["elixir"]
+run = "elixir solution.exs"
+
+[erlang]
+packages = ["erlang"]
+run = "/bin/sh run.sh"
+
+[fortran]
+packages = ["gfortran"]
+run = "/bin/sh run.sh"
+
+[fsharp]
+packages = ["dotnet-sdk_8"]
+run = "dotnet fsi solution.fsx"
+
+[gleam]
+packages = ["gleam erlang"]
+run = "gleam run"
+
+[go]
+packages = ["go"]
+run = "go run solution.go"
+
+[groovy]
+packages = ["groovy"]
+run = "groovy solution.groovy"
+
+[haskell]
+packages = ["ghc"]
+run = "/bin/sh run.sh"
+
+[haxe]
+packages = ["haxe"]
+run = "haxe --run Solution"
+
+[io]
+customized = true
+run = "io solution.io"
+
+[janet]
+packages = ["janet"]
+run = "janet solution.janet"
+
+[java]
+packages = ["openjdk"]
+run = "/bin/sh run.sh"
+
+[julia]
+packages = ["julia-bin"]
+run = "julia solution.jl"
+
+[kotlin]
+packages = ["kotlin"]
+run = "/bin/sh run.sh"
+
+[lobster]
+packages = ["lobster"]
+run = "lobster solution.lobster --"
+
+[lolcode]
+customized = true
+run = "/bin/sh run.sh"
+
+[lua]
+packages = ["lua"]
+run = "lua solution.lua"
+
+[miniscript]
+customized = true
+run = "miniscript solution.ms"
+
+[moonscript]
+packages = ["luajitPackages.moonscript"]
+run = "moon solution.moon"
+
+[nim]
+packages = ["nim"]
+run = "/bin/sh run.sh"
+
+[node]
+packages = ["nodejs_24"]
+run = "node solution.js"
+
+[ocaml]
+packages = ["ocaml"]
+run = "ocaml solution.ml"
+
+[odin]
+packages = ["odin"]
+run = "odin run solution.odin -file --"
+
+[pascal]
+packages = ["fpc"]
+run = "/bin/sh run.sh"
+
+[perl]
+packages = ["perl"]
+run = "perl solution.pl"
+
+[php]
+packages = ["php"]
+run = "php solution.php"
+
+[prolog]
+packages = ["swi-prolog"]
+run = "swipl solution.pl"
+
+[python]
+packages = ["python314"]
+run = "python solution.py"
+
+[qbasic]
+packages = ["yabasic"]
+run = "yabasic solution.bas"
+
+[r]
+packages = ["R"]
+run = "Rscript solution.R"
+
+[racket]
+packages = ["racket"]
+run = "racket solution.rkt"
+
+[roc]
+customized = true
+run = "roc run solution.roc --"
+
+[ruby]
+packages = ["ruby"]
+run = "ruby solution.rb"
+
+[rust]
+packages = ["rustc", "cargo"]
+run = "cargo run --quiet --bin solution"
+
+[scala]
+packages = ["scala"]
+run = '''
+scalac -d . solution.scala
+scala aoc.Solution "$1" "$2"
+'''
+
+[spl]
+customized = true
+run = "/bin/sh run.sh"
+
+[sql]
+packages = ["sqlite"]
+run = "/bin/sh run.sh"
+
+[swift]
+customized = true
+run = '''
+swiftc solution.swift
+./solution "$1" "$2"
+'''
+
+[tcl]
+packages = ["tcl"]
+run = "tclsh solution.tcl"
+
+[uiua]
+packages = ["uiua"]
+run = "uiua run --no-color solution.ua"
+
+[v]
+packages = ["vlang"]
+run = "v run solution.v"
+
+[wren]
+customized = true
+run = "wren_cli solution.wren"
+
+[yasl]
+customized = true
+run = "yasl solution.yasl"
+
+[zig]
+packages = ["zig"]
+run = "/bin/sh run.sh"

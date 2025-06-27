@@ -87,7 +87,7 @@ impl RunContext {
             .args(&["--platform", "linux/amd64"])
             .args(&["-v", "aoc-nix:/nix"])
             .arg("-v")
-            .arg(format!("{}:/infra/:ro", infra_path.display()))
+            .arg(format!("{}:/infra/", infra_path.display()))
             .arg("-v")
             .arg(format!("{}:/problem", &self.settings.problem_path))
             .arg("-v")
