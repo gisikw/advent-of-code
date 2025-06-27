@@ -63,8 +63,12 @@ impl RunContext {
             run_command=$(nix eval --raw /infra#langMeta.x86_64-linux.{lang}.run);
             script -q -e -c "
                 nix develop /infra#{lang} --command sh -c \"
+                    # Separate nix noise from output
                     printf '\033[F\n'
-                    $run_command /problem/{example}.txt {part}
+
+                    input_file=/problem/{example}.txt
+                    part={part}
+                    $run_command \\\$input_file \\\$part
                 \"
             " /script;
             tail -n 3 /script | head -n 1 > /out
