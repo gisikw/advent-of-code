@@ -13,44 +13,59 @@
 
 [ada]
 packages = ["gnat"]
-run = "/bin/sh run.sh"
+run = '''
+gnatmake -o solution solution.adb
+./solution $input_file $part
+'''
 
 [arturo]
 customized = true
-run = "arturo solution.art"
+run = "arturo solution.art $input_file $part"
 
 [bash]
 packages = ["bash"]
-run = "bash solution.sh"
+run = "bash solution.sh $input_file $part"
 
 [borgo]
 customized = true
 packages = ["go"]
-run = "/bin/sh run.sh"
+run = '''
+compiler build
+go run . $input_file $part
+'''
 
 [c]
 packages = ["gcc"]
-run = "/bin/sh run.sh"
+run = '''
+gcc solution.c -o solution
+./solution $input_file $part
+'''
 
 [clojure]
 packages = ["clojure", "openjdk"]
-run = "clojure -M -i solution.clj -m solution"
+run = "clojure -M -i solution.clj -m solution $input_file $part"
 
 [cobol]
 packages = ["gnu-cobol"]
-run = "/bin/sh run.sh"
+run = '''
+cobc -x -free solution.cob -o solution
+(echo $input_file; echo $part) | ./solution
+'''
 
 [crystal]
 packages = ["crystal"]
-run = "crystal run solution.cr --"
+run = "crystal run solution.cr -- $input_file $part"
 
 [d]
 packages = ["dmd"]
-run = "/bin/sh run.sh"
+run = '''
+dmd solution.d
+./solution $input_file $part
+'''
 
 [dart]
 packages = ["dart"]
-run = "dart solution.dart"
+run = "dart solution.dart $input_file $part"
 
 [elixir]
 packages = ["elixir"]
@@ -58,35 +73,44 @@ run = "elixir solution.exs"
 
 [erlang]
 packages = ["erlang"]
-run = "/bin/sh run.sh"
+run = '''
+erlc solution.erl
+erl -noshell -run solution main $input_file $part -s init stop
+'''
 
 [fortran]
 packages = ["gfortran"]
-run = "/bin/sh run.sh"
+run = '''
+gfortran solution.f90
+./a.out $input_file $part
+'''
 
 [fsharp]
 packages = ["dotnet-sdk_8"]
-run = "dotnet fsi solution.fsx"
+run = "dotnet fsi solution.fsx $input_file $part"
 
 [gleam]
 packages = ["gleam erlang"]
-run = "gleam run"
+run = "gleam run $input_file $part"
 
 [go]
 packages = ["go"]
-run = "go run solution.go"
+run = "go run solution.go $input_file $part"
 
 [groovy]
 packages = ["groovy"]
-run = "groovy solution.groovy"
+run = "groovy solution.groovy $input_file $part"
 
 [haskell]
 packages = ["ghc"]
-run = "/bin/sh run.sh"
+run = '''
+ghc -O2 solution.hs
+./solution $input_file $part
+'''
 
 [haxe]
 packages = ["haxe"]
-run = "haxe --run Solution"
+run = "haxe --run Solution $input_file $part"
 
 [io]
 customized = true
@@ -94,142 +118,183 @@ run = "io solution.io"
 
 [janet]
 packages = ["janet"]
-run = "janet solution.janet"
+run = "janet solution.janet $input_file $part"
 
 [java]
 packages = ["openjdk"]
-run = "/bin/sh run.sh"
+run = '''
+javac Main.java
+java Main $input_file $part
+'''
 
 [julia]
 packages = ["julia-bin"]
-run = "julia solution.jl"
+run = "julia solution.jl $input_file $part"
 
 [kotlin]
 packages = ["kotlin"]
-run = "/bin/sh run.sh"
+run = '''
+kotlinc solution.kt -include-runtime -d solution.jar
+java -jar solution.jar $input_file $part
+'''
 
 [lobster]
 packages = ["lobster"]
-run = "lobster solution.lobster --"
+run = "lobster solution.lobster -- $input_file $part"
 
 [lolcode]
 customized = true
-run = "/bin/sh run.sh"
+run = "(echo $input_file; echo $part) | lci solution.lol"
 
 [lua]
 packages = ["lua"]
-run = "lua solution.lua"
+run = "lua solution.lua $input_file $part"
 
 [miniscript]
 customized = true
-run = "miniscript solution.ms"
+run = "miniscript solution.ms $input_file $part"
 
 [moonscript]
 packages = ["luajitPackages.moonscript"]
-run = "moon solution.moon"
+run = "moon solution.moon $input_file $part"
 
 [nim]
 packages = ["nim"]
-run = "/bin/sh run.sh"
+run = '''
+nim -c -o:solution solution.nim
+./solution $input_file $part
+'''
 
 [node]
 packages = ["nodejs_24"]
-run = "node solution.js"
+run = "node solution.js $input_file $part"
 
 [ocaml]
 packages = ["ocaml"]
-run = "ocaml solution.ml"
+run = "ocaml solution.ml $input_file $part"
 
 [odin]
 packages = ["odin"]
-run = "odin run solution.odin -file --"
+run = "odin run solution.odin -file -- $input_file $part"
 
 [pascal]
 packages = ["fpc"]
-run = "/bin/sh run.sh"
+run = '''
+fpc solution.pas
+./solution $input_file $part
+'''
 
 [perl]
 packages = ["perl"]
-run = "perl solution.pl"
+run = "perl solution.pl $input_file $part"
 
 [php]
 packages = ["php"]
-run = "php solution.php"
+run = "php solution.php $input_file $part"
 
 [prolog]
 packages = ["swi-prolog"]
-run = "swipl solution.pl"
+run = "swipl solution.pl $input_file $part"
 
 [python]
 packages = ["python314"]
-run = "python solution.py"
+run = "python solution.py $input_file $part"
 
 [qbasic]
 packages = ["yabasic"]
-run = "yabasic solution.bas"
+run = "yabasic solution.bas $input_file $part"
 
 [r]
 packages = ["R"]
-run = "Rscript solution.R"
+run = "Rscript solution.R $input_file $part"
 
 [racket]
 packages = ["racket"]
-run = "racket solution.rkt"
+run = "racket solution.rkt $input_file $part"
 
 [roc]
 customized = true
-run = "roc run solution.roc --"
+run = "roc run solution.roc -- $input_file $part"
 
 [ruby]
 packages = ["ruby"]
-run = "ruby solution.rb"
+run = "ruby solution.rb $input_file $part"
 
 [rust]
 packages = ["rustc", "cargo"]
-run = "cargo run --quiet --bin solution"
+run = "cargo run --quiet --bin solution $input_file $part"
 
 [scala]
 packages = ["scala"]
 run = '''
 scalac -d . solution.scala
-scala aoc.Solution "$1" "$2"
+scala aoc.Solution $input_file $part
 '''
 
 [spl]
 customized = true
-run = "/bin/sh run.sh"
+run = '''
+python -m pip install shakespearelang
+(echo $part; echo $input_file) | shakespeare run solution.spl
+'''
 
 [sql]
 packages = ["sqlite"]
-run = "/bin/sh run.sh"
+run = '''
+# Create a new DB each run
+db=aoc.db
+rm -f "$db"
+
+sqlite3 "$db" <<EOF
+CREATE TABLE config (key TEXT, value INT);
+CREATE TABLE lines (line TEXT);
+CREATE TABLE output (text TEXT);
+
+INSERT INTO config (key, value) VALUES ('part', $part);
+EOF
+
+# Insert lines from input
+while IFS= read -r line; do
+  sqlite3 "$db" "INSERT INTO lines (line) VALUES ('$line');"
+done < "$input_file"
+
+# Run solution
+sqlite3 "$db" < solution.sql
+
+# Show result
+sqlite3 "$db" "SELECT text FROM output;"
+'''
 
 [swift]
 customized = true
 run = '''
 swiftc solution.swift
-./solution "$1" "$2"
+./solution $input_file $part
 '''
 
 [tcl]
 packages = ["tcl"]
-run = "tclsh solution.tcl"
+run = "tclsh solution.tcl $input_file $part"
 
 [uiua]
 packages = ["uiua"]
-run = "uiua run --no-color solution.ua"
+run = "uiua run --no-color solution.ua $input_file $part"
 
 [v]
 packages = ["vlang"]
-run = "v run solution.v"
+run = "v run solution.v $input_file $part"
 
 [wren]
 customized = true
-run = "wren_cli solution.wren"
+run = "wren_cli solution.wren $input_file $part"
 
 [yasl]
 customized = true
-run = "yasl solution.yasl"
+run = "yasl solution.yasl $input_file $part"
 
 [zig]
 packages = ["zig"]
-run = "/bin/sh run.sh"
+run = '''
+zig build-exe solution.zig
+./solution $input_file $part
+'''

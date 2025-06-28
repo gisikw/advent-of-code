@@ -4,15 +4,9 @@
 - Use kv .solutions file, rather than individual ones
 - Remove problems/
 - Promote solutions/<years>/ to <years>/
-- Purge old docker logic
 - Add support for 25+ new languages
-- Get test harness not to mangle current settings
-- Don't append to run command, rather let the run command operate on pre-arranged env vars
 - Rename spl -> shakespeare
 - Decouple shakespare from pip install
-- See about removing run.sh's where we can
-- Make patchedLanguages.nix support customShells and customPackages
-- aoc test is not resilient to staged file deletions
 
 # Languages to add
 - Whitespace

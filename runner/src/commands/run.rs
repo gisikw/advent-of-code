@@ -60,19 +60,13 @@ impl RunContext {
     fn execute_solution(&mut self) {
         let full_command = format!(
             r#"
-            run_command=$(nix eval --raw /infra#langMeta.x86_64-linux.{lang}.run);
-            script -q -e -c "
-                nix develop /infra#{lang} --command sh -c \"
-                    set -euo pipefail
-
-                    # Separate nix noise from output
-                    printf '\033[F\n'
-
-                    input_file=/problem/{example}.txt
-                    part={part}
-                    $run_command \\\$input_file \\\$part
-                \"
-            " /script;
+            run=$(mktemp)
+            echo 'set -euo pipefail' > "$run"
+            echo 'printf "\033[F\n"' >> "$run"
+            echo 'input_file=/problem/{example}.txt' >> "$run"
+            echo 'part={part}' >> "$run"
+            nix eval --raw /infra#langMeta.x86_64-linux.{lang}.run >> "$run"
+            script -q -e -c "nix develop /infra#{lang} --command sh $run" /script;
             tail -n 3 /script | head -n 1 > /out
             "#,
             lang = self.settings.language,

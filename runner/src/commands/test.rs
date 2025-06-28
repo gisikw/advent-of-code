@@ -60,7 +60,11 @@ impl Worktree {
                 fs::create_dir_all(parent)?;
             }
 
-            fs::copy(src, &dest)?;
+            if src.exists() {
+                fs::copy(src, &dest)?;
+            } else if dest.exists() {
+                fs::remove_file(&dest)?;
+            }
         }
 
         Ok(())
