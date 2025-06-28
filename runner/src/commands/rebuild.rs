@@ -2,15 +2,15 @@ use anyhow::{Context, Result};
 use std::fs;
 use std::process::{exit, Command};
 
-pub fn run() {
-    if let Err(e) = try_run() {
+pub fn run(full: bool) {
+    if let Err(e) = try_run(full) {
         eprintln!("Build error: {}", e);
         exit(1);
     }
 }
 
-fn try_run() -> Result<()> {
-    println!("Rebuilding the aoc binary and execution container");
+fn try_run(full: bool) -> Result<()> {
+    println!("Rebuilding the aoc binary");
 
     Command::new("cargo")
         .arg("build")
@@ -22,6 +22,12 @@ fn try_run() -> Result<()> {
         .context("Cargo build failed")?;
 
     fs::copy("runner/target/release/aoc", "aoc").context("Failed to copy aoc binary")?;
+
+    if !full {
+        return Ok(());
+    }
+
+    println!("Rebuilding the execution container and volume");
 
     Command::new("docker")
         .args(&["volume", "rm", "aoc-nix", "-f"])

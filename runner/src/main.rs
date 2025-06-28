@@ -43,7 +43,10 @@ enum Commands {
     },
 
     #[command(about = "Rebuild the aoc binary")]
-    Rebuild,
+    Rebuild {
+        #[arg(short = 'f', long = "full")]
+        full: bool,
+    },
 
     #[command(
         about = "Run a solution for the current day, optionally for a specific input and part"
@@ -117,7 +120,7 @@ fn main() {
             language,
             yes,
         } => commands::new::run(*year, *day, language, yes),
-        Commands::Rebuild => commands::rebuild::run(),
+        Commands::Rebuild { full } => commands::rebuild::run(*full),
         Commands::Clear => commands::clear::run(),
         Commands::Run {
             example_name,
