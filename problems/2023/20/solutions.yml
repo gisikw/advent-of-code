@@ -1,8 +1,0 @@
-official:
-  part1: "ba118aaa5efb8c5fe528a07c30aa7911"
-  part2: "d2bc2141bca76c542b088fdea0dbacbd"
-examples:
-  - input: example.txt
-    part1: "32000000"
-  - input: example2.txt
-    part1: "11687500"

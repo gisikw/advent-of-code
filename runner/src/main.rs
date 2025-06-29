@@ -1,6 +1,7 @@
 use clap::{Parser, Subcommand, ValueHint};
 use dotenv::dotenv;
 mod commands;
+mod store;
 mod utils;
 
 #[derive(Parser, Debug)]

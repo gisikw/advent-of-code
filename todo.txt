@@ -18,3 +18,4 @@
 # Future Ideas
 - Enhance fetch to check problem for previously confirmed solutions
 - Detect an empty last line of STDOUT for easy submission/save-skipping
+- Add a declutter command that discards saved answers for example inputs

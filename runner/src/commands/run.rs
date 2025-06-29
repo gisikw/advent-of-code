@@ -1,13 +1,10 @@
-use crate::utils::{self};
-use md5;
+use crate::store;
+use crate::utils;
 use regex::Regex;
 use reqwest::blocking::Client;
-use serde_yaml::{Mapping, Sequence, Value};
 use std::collections::HashMap;
 use std::env;
-use std::fs;
 use std::io::Read;
-use std::path::Path;
 use std::process::{exit, Command};
 
 pub fn run(example_name: Option<String>, part: Option<usize>, confirmation: Option<bool>) {
@@ -35,7 +32,6 @@ struct Settings {
 struct RunContext {
     settings: Settings,
     result: Option<String>,
-    solutions_data: Option<Value>,
 }
 
 impl RunContext {
@@ -53,7 +49,6 @@ impl RunContext {
                 confirmation,
             },
             result: None,
-            solutions_data: None,
         }
     }
 
@@ -118,85 +113,18 @@ impl RunContext {
     }
 
     fn check_solution(&mut self) -> Option<bool> {
-        let solutions_file_path = Path::new(&self.settings.problem_path).join("solutions.yml");
-        self.solutions_data = if solutions_file_path.exists() {
-            let file = fs::File::open(&solutions_file_path).expect("Failed to open solutions file");
-            Some(serde_yaml::from_reader(file).expect("Failed to parse solutions file"))
-        } else {
-            return None;
-        };
-
-        let mapping;
-        if &self.settings.example_name == "input" {
-            mapping = self
-                .solutions_data
-                .as_mut()
-                .unwrap()
-                .as_mapping_mut()
-                .expect("Expected solutions data to be a mapping")
-                .entry(serde_yaml::Value::String("official".to_string()))
-                .or_insert_with(|| Value::Mapping(Mapping::new()))
-                .as_mapping_mut()
-                .expect("Expected official solutions to be a mapping")
-        } else {
-            let examples = self
-                .solutions_data
-                .as_mut()
-                .unwrap()
-                .as_mapping_mut()
-                .expect("Expected solutions data to be a mapping")
-                .entry(Value::String("examples".to_string()))
-                .or_insert_with(|| Value::Sequence(Sequence::new()))
-                .as_sequence_mut()
-                .expect("Expected examples to be a mapping");
-
-            mapping = if let Some(example) = examples.iter_mut().find(|ex| {
-                ex.as_mapping()
-                    .and_then(|map| map.get(&Value::String("input".to_string())))
-                    == Some(&Value::String(format!(
-                        "{}.txt",
-                        &self.settings.example_name
-                    )))
-            }) {
-                example
-                    .as_mapping_mut()
-                    .expect("Expected example to be a mapping")
-            } else {
-                let new_example = Value::Mapping(Mapping::new());
-                examples.push(new_example);
-                examples
-                    .last_mut()
-                    .unwrap()
-                    .as_mapping_mut()
-                    .expect("Expected example to be a mapping")
-            }
-        };
-
-        let expected_answer = mapping
-            .get(&Value::String(format!("part{}", &self.settings.part)))
-            .and_then(|v| v.as_str())
-            .filter(|s| !s.is_empty());
-
-        if expected_answer.is_none() {
-            return None;
-        }
-
-        let result = if &self.settings.example_name == "input" {
-            let answer_hash = format!("{:x}", md5::compute(self.result.as_ref().unwrap()));
-            answer_hash == expected_answer.unwrap()
-        } else {
-            self.result.as_ref().unwrap() == expected_answer.unwrap()
-        };
+        let result = store::is_correct_answer(
+            self.settings.year as u16,
+            self.settings.day as u8,
+            &self.settings.example_name,
+            self.settings.part as u8,
+            self.result.as_ref().unwrap(),
+        )?;
 
         if result {
             println!("\x1b[32m✅ Correct answer!\x1b[0m\n")
-        } else if &self.settings.example_name == "input" {
-            println!("\x1b[31m❌ Incorrect answer.\x1b[0m\n")
         } else {
-            println!(
-                "\x1b[31m❌ Incorrect answer. Expected {}\x1b[0m\n",
-                expected_answer.unwrap()
-            )
+            println!("\x1b[31m❌ Incorrect answer.\x1b[0m\n")
         }
 
         Some(result)
