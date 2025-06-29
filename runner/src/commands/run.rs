@@ -43,7 +43,7 @@ impl RunContext {
                 day,
                 language: lang.clone(),
                 problem_path: format!("./problems/{}/{:02}", year, day),
-                solution_path: format!("./solutions/{}/{:02}/{}", year, day, lang),
+                solution_path: format!("./{}/{:02}/{}", year, day, lang),
                 example_name: example_name.unwrap_or("input".to_string()),
                 part: part.unwrap_or(1),
                 confirmation,

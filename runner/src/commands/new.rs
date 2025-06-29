@@ -10,7 +10,7 @@ pub fn run(year: usize, day: usize, language: &Option<String>, yes: &bool) {
     let (resolved_year, resolved_day, resolved_lang) = results;
 
     let create_message = format!(
-        "Create new solution in ./solutions/{}/{:02}/{}?",
+        "Create new solution in ./{}/{:02}/{}?",
         resolved_year, resolved_day, resolved_lang
     );
 
@@ -19,7 +19,7 @@ pub fn run(year: usize, day: usize, language: &Option<String>, yes: &bool) {
         return;
     }
 
-    let solution_dir = format!("./solutions/{}/{:02}", resolved_year, resolved_day);
+    let solution_dir = format!("./{}/{:02}", resolved_year, resolved_day);
     let template_path = format!("./languages/{}", resolved_lang);
     let target_path = format!("{}/{}", solution_dir, resolved_lang);
 

@@ -2,7 +2,7 @@ use crossterm::event::{self, Event, KeyCode};
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 use rand::seq::SliceRandom;
 use rand::thread_rng;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::io::{self, Write};
 use std::path::Path;
@@ -128,4 +128,69 @@ pub fn copy_dir_all(src: &Path, dst: &Path) -> io::Result<()> {
         }
     }
     Ok(())
+}
+
+pub fn used_languages(year: &Option<usize>) -> Vec<String> {
+    let mut all_languages = HashSet::new();
+    match year {
+        Some(year) => {
+            let solutions_path = format!("./{}", year);
+            if let Ok(day_entries) = fs::read_dir(&solutions_path) {
+                for day_entry in day_entries.flatten() {
+                    if let Ok(day_type) = day_entry.file_type() {
+                        if day_type.is_dir() {
+                            let day_path = day_entry.path();
+                            let day_languages =
+                                get_language_directories(&day_path.to_str().unwrap());
+                            all_languages.extend(day_languages);
+                        }
+                    }
+                }
+            }
+        }
+        None => {
+            if let Ok(entries) = fs::read_dir(".") {
+                for entry in entries.flatten() {
+                    let file_name = entry.file_name();
+                    let file_name = file_name.to_string_lossy();
+
+                    if entry.file_type().map(|ft| ft.is_dir()).unwrap_or(false)
+                        && file_name.len() == 4
+                        && file_name.chars().all(|c| c.is_ascii_digit())
+                    {
+                        let year_path = entry.path();
+                        if let Ok(day_entries) = fs::read_dir(year_path) {
+                            for day_entry in day_entries.flatten() {
+                                if let Ok(day_type) = day_entry.file_type() {
+                                    if day_type.is_dir() {
+                                        let day_path = day_entry.path();
+                                        let day_languages =
+                                            get_language_directories(&day_path.to_string_lossy());
+                                        all_languages.extend(day_languages);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    };
+    all_languages.into_iter().collect()
+}
+
+fn get_language_directories(path: &str) -> HashSet<String> {
+    let mut languages = HashSet::new();
+    if let Ok(entries) = fs::read_dir(path) {
+        for entry in entries.flatten() {
+            if let Ok(file_type) = entry.file_type() {
+                if file_type.is_dir() {
+                    if let Some(lang) = entry.file_name().to_str() {
+                        languages.insert(lang.to_string());
+                    }
+                }
+            }
+        }
+    }
+    languages
 }
