@@ -1,14 +1,9 @@
 # Immediate Work
-- Add gitignore for .txt files in solutions (and tweak telescope to ignore that)
-- Move inputs into solutions
-- Use kv .solutions file, rather than individual ones
-- Remove problems/
-- Promote solutions/<years>/ to <years>/
 - Add support for 25+ new languages
 - Rename spl -> shakespeare
 - Decouple shakespare from pip install
-- Purge usage of solutions.yml files
 - Audit for unneeded crates
+- Reevalute 9999 special casing
 
 # Languages to add
 - Whitespace

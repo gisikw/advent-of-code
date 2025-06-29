@@ -115,7 +115,7 @@ fn create_and_run_example(lang: &str, worktree: &Worktree) -> Result<()> {
         return Err(anyhow!("aoc new failed for {lang}"));
     }
 
-    let input_path = worktree.path().join("problems/9999/25/input.txt");
+    let input_path = worktree.path().join("/9999/25/inputs/input.txt");
     fs::create_dir_all(input_path.parent().unwrap())?;
     let mut f = fs::File::create(input_path)?;
     writeln!(f, "line 1\nline 2\nline 3")?;

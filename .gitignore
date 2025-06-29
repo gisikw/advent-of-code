@@ -1,5 +1,3 @@
 .env
-/problems/9999
-/solutions/9999
-/problems/*/*/*.txt
+[0-9][0-9][0-9][0-9]/[0-9][0-9]/inputs/
 runner/target/
