@@ -2,31 +2,24 @@ use crossterm::event::{self, Event, KeyCode};
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
 use rand::seq::SliceRandom;
 use rand::thread_rng;
-use serde::Deserialize;
 use std::collections::HashMap;
 use std::fs;
 use std::io::{self, Write};
 use std::path::Path;
 use std::path::PathBuf;
 
-#[derive(Debug, Deserialize)]
-struct Config {
-    languages: HashMap<String, LanguageConfig>,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub struct LanguageConfig {}
+use toml::Value;
 
 pub fn get_aoc_tempfile_path() -> PathBuf {
     PathBuf::from("/tmp/aoc_env")
 }
 
 pub fn get_supported_languages() -> Vec<String> {
-    let config_path = Path::new("config.yml");
+    let config_path = Path::new("infra/languages.toml");
     let config_content = fs::read_to_string(config_path).unwrap();
-    let config: Config = serde_yaml::from_str(&config_content).unwrap();
+    let parsed: Value = config_content.parse::<Value>().unwrap();
 
-    config.languages.keys().cloned().collect::<Vec<String>>()
+    parsed.as_table().unwrap().keys().cloned().collect()
 }
 
 pub fn resolve_aoc_settings(

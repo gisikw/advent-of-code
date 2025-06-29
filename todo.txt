@@ -7,6 +7,8 @@
 - Add support for 25+ new languages
 - Rename spl -> shakespeare
 - Decouple shakespare from pip install
+- Purge usage of solutions.yml files
+- Audit for unneeded crates
 
 # Languages to add
 - Whitespace
