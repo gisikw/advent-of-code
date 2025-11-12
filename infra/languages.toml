@@ -22,6 +22,10 @@ gnatmake -o solution solution.adb
 customized = true
 run = "arturo solution.art $input_file $part"
 
+[ballerina]
+packages = ["ballerina"]
+run = "bal run solution.bal -- -CinputFile=$input_file -Cpart=$part"
+
 [bash]
 packages = ["bash"]
 run = "bash solution.sh $input_file $part"
