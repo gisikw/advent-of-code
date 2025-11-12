@@ -105,6 +105,10 @@ run = "go run solution.go $input_file $part"
 packages = ["groovy"]
 run = "groovy solution.groovy $input_file $part"
 
+[hare]
+packages = ["hare"]
+run = "hare run solution.ha $input_file $part"
+
 [haskell]
 packages = ["ghc"]
 run = '''
