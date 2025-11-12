@@ -139,6 +139,10 @@ java Main $input_file $part
 packages = ["julia-bin"]
 run = "julia solution.jl $input_file $part"
 
+[koka]
+packages = ["koka"]
+run = "koka -e solution.kk -- $input_file $part"
+
 [kotlin]
 packages = ["kotlin"]
 run = '''
