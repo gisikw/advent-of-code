@@ -192,6 +192,13 @@ run = "perl solution.pl $input_file $part"
 packages = ["php"]
 run = "php solution.php $input_file $part"
 
+[pony]
+packages = ["ponyc"]
+run = '''
+ponyc
+./code $input_file $part
+'''
+
 [prolog]
 packages = ["swi-prolog"]
 run = "swipl solution.pl $input_file $part"
