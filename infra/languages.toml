@@ -231,6 +231,10 @@ run = "Rscript solution.R $input_file $part"
 packages = ["racket"]
 run = "racket solution.rkt $input_file $part"
 
+[red]
+packages = ["red"]
+run = "red solution.red $input_file $part"
+
 [roc]
 customized = true
 run = "roc run solution.roc -- $input_file $part"
