@@ -120,6 +120,13 @@ ghc -O2 solution.hs
 packages = ["haxe"]
 run = "haxe --run Solution $input_file $part"
 
+[idris2]
+packages = ["idris2"]
+run = '''
+idris2 -o solution solution.idr
+./build/exec/solution $input_file $part
+'''
+
 [io]
 customized = true
 run = "io solution.io"
