@@ -82,6 +82,10 @@ erlc solution.erl
 erl -noshell -run solution main $input_file $part -s init stop
 '''
 
+[forth]
+packages = ["gforth"]
+run = "gforth solution.fs $input_file $part | cat"
+
 [fortran]
 packages = ["gfortran"]
 run = '''
