@@ -245,6 +245,10 @@ run = "Rscript solution.R $input_file $part"
 packages = ["racket"]
 run = "racket solution.rkt $input_file $part"
 
+[raku]
+packages = ["rakudo"]
+run = "raku solution.raku $input_file $part"
+
 [red]
 packages = ["red"]
 run = "red solution.red $input_file $part"
