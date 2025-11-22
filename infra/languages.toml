@@ -321,6 +321,10 @@ swiftc solution.swift
 packages = ["tcl"]
 run = "tclsh solution.tcl $input_file $part"
 
+[typescript]
+packages = ["nodejs_24"]
+run = "npx -y ts-node solution.ts $input_file $part"
+
 [uiua]
 packages = ["uiua"]
 run = "uiua run --no-color solution.ua $input_file $part"
