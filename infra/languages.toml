@@ -195,6 +195,10 @@ nim -c -o:solution solution.nim
 ./solution $input_file $part
 '''
 
+[nix]
+packages = []
+run = "INPUT_FILE=$input_file PART=$part nix eval --raw --impure -f solution.nix"
+
 [node]
 packages = ["nodejs_24"]
 run = "node solution.js $input_file $part"
