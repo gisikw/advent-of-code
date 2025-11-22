@@ -162,6 +162,13 @@ run = "(echo $input_file; echo $part) | lci solution.lol"
 packages = ["lua"]
 run = "lua solution.lua $input_file $part"
 
+[mercury]
+packages = ["mercury"]
+run = '''
+mmc --make solution
+./solution $input_file $part
+'''
+
 [miniscript]
 customized = true
 run = "miniscript solution.ms $input_file $part"
