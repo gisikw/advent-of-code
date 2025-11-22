@@ -325,6 +325,13 @@ run = "tclsh solution.tcl $input_file $part"
 packages = ["uiua"]
 run = "uiua run --no-color solution.ua $input_file $part"
 
+[unison]
+packages = ["unison-ucm"]
+run = '''
+ucm transcript setup.md
+ucm run.compiled solution.uc $input_file $part
+'''
+
 [v]
 packages = ["vlang"]
 run = "v run solution.v $input_file $part"

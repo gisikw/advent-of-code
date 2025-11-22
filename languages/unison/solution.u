@@ -1,0 +1,14 @@
+use base
+
+main : '{IO, Exception} ()
+main = 'let
+  args = !getArgs
+  inputFile = Optional.getOrElse "" (List.head args)
+  part = Optional.getOrElse "" (List.at 1 args)
+  content = readFileUtf8 (FilePath inputFile)
+  lines = Text.split ?\n content
+  lines' = match List.last lines with
+    Some "" -> List.dropRight 1 lines
+    _ -> lines
+  linesCount = List.size lines'
+  printLine ("Received " ++ Nat.toText linesCount ++ " lines of input for part " ++ part)
