@@ -11,6 +11,23 @@
 - Atomy
 - Velato
 - Piet
+- Mojo
+- Bosque
+- Carbon
+- APL
+- Jakt
+- BQN
+- Dex
+- Vale
+- Futhark
+- Reason
+- PureScript
+- Chapel
+- F*
+- Carp
+- Beef
+- Darklang
+- Jai
 
 # Future Ideas
 - Enhance fetch to check problem for previously confirmed solutions

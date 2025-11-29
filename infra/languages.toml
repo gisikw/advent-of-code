@@ -131,6 +131,13 @@ idris2 -o solution solution.idr
 ./build/exec/solution $input_file $part
 '''
 
+[intercal]
+packages = ["intercal"]
+run = '''
+ick solution.i
+(echo $part; cat $input_file) | ./solution
+'''
+
 [io]
 customized = true
 run = "io solution.io"
