@@ -2,33 +2,60 @@
 
 My solutions for the [Advent of Code](https://adventofcode.com).
 
-# Usage
-Populate a local `.env` file with your session cookie to support fetching
-inputs and submitting answers via CLI.
+## Usage
+
+Populate a local `.env` file with your session cookie to support fetching inputs and submitting answers via CLI:
 
 ```bash
-./aoc new 2022 1 rust       # Create a new solution based on a language template
-                            # (or omit the language to choose randomly)
-
-./aoc run                   # Run the current solution in a Docker container
-./aoc run 2                 # (optionally specifying which part to run)
-
-./aoc add example 35        # Add example input with an optional known output
-./aoc run example 2         # Run the current solution against the example input
+AOC_SESSION="your_session_cookie_here"
 ```
 
-# Automatic Solution Checking / Submission
+### Creating and Running Solutions
 
-In addition to creating ./solutions folders for the implementation, a ./problem
-folder is created to hold the official inputs and any example inputs you choose
-to add. The expected outputs are saved in a solutions.yml file which stores the
-answer, or an md5 hash of the answer for official inputs.
+```bash
+./aoc new 2024 1 rust       # Create a new solution based on a language template
+                            # (or omit the language to choose randomly)
 
-Note that official inputs are part of the .gitignore, and are not committed to
-the repository.
+./aoc run                   # Run the current solution
+./aoc run 2                 # Run part 2
 
-The runner can reflect on the last line written to STDOUT and give feedback
-acccordingly:
+./aoc add example 35        # Add example input with an optional known output
+./aoc run example 2         # Run against the example input for part 2
+```
+
+### Other Commands
+
+```bash
+./aoc set 2024 5 python     # Set the current year, day, and language context
+./aoc clear                 # Clear the current context
+./aoc fetch                 # Download the input for the current day
+./aoc used 2024             # Show languages used for a given year
+./aoc unused 2024           # Show languages not yet used for a given year
+```
+
+## Directory Structure
+
+Solutions are organized by year, day, and language:
+
+```
+2024/
+├── 01/
+│   └── lolcode/
+│       ├── solution.lol
+│       └── inputs/        # (gitignored) official and example inputs
+├── 02/
+│   └── rust/
+│       ├── Cargo.toml
+│       ├── src/
+│       └── inputs/
+...
+```
+
+Each solution directory contains the implementation and an `inputs/` folder (gitignored) for official puzzle inputs and any example inputs you add.
+
+## Automatic Solution Checking / Submission
+
+The runner captures the last line written to STDOUT as the answer and provides feedback accordingly:
 
 ```bash
 ./aoc run
@@ -50,43 +77,28 @@ acccordingly:
 # ⬆️  Answer is too low.
 
 ./aoc run 2
-# 12000
-# Do you want to submit this answer? [y/N]: y
-# ⏱ Please wait 30s before submitting another answer.
-
-./aoc run 2
 # 12345
 # Do you want to submit this answer? [y/N]: y
 # ✅ Correct answer submitted!
-# Would you like to save this result? [y/N]: y
-# Official answer saved.
 ```
 
-# Containerization
+## Containerization
 
-One of the goals of this project is for every solution to be containerized so
-we can use multiple languages and return to these problems periodically without
-having to mess around with our local environment.
+All solutions run inside a unified Docker container with Nix devshells. This ensures reproducible environments across 67 supported languages without polluting your local system.
 
-The `config.yml` file has a list of supported languages with Docker image and
-tags, along with a default run command, to which the input file and part
-argument are applied.
+The infrastructure lives in `infra/`:
+- **Dockerfile** - NixOS-based container with flakes enabled
+- **flake.nix** - Defines devshells for each language
+- **languages.toml** - Language definitions with packages and run commands
+- **customLangs.nix** - Custom derivations for languages requiring special handling
 
-The first time a solution is run, the specific docker image ref is frozen via a
-`.docker-image-ref` file in the particular solution directory, thus ensuring
-the solution can always be run in the environment for which it was built.
+When you run a solution, the CLI mounts the solution directory into the container and executes it within the appropriate Nix devshell.
 
-# Language Templates
+## Language Templates
 
-Each language template provides a scaffold that can output the number of lines
-from an input file, along with the problem part that was passed in.
+Each language has a template in `languages/<lang>/` that provides a scaffold accepting an input file and part argument. Templates output the line count and part number as a basic verification that I/O is working.
 
-Every solution is expected to accept an input file and a part argument, and the
-scaffolds are verified by the test suite in the `tests/` folder. The last line
-written to STDOUT is expected to be the answer to the problem.
+Supported languages include:
+Ada, Arturo, Ballerina, Bash, Borgo, C, Clojure, COBOL, Crystal, D, Dart, Elixir, Erlang, Forth, Fortran, F#, Gleam, Go, Groovy, Hare, Haskell, Haxe, Idris 2, INTERCAL, Io, Janet, Java, Julia, Koka, Kotlin, Lobster, LOLCODE, Lua, Mercury, MiniScript, MoonScript, Nim, Nix, Node.js, OCaml, Odin, Pascal, Perl, PHP, Pony, Prolog, Python, QBasic, R, Racket, Raku, Red, Roc, Ruby, Rust, Scala, Shakespeare, SQL, Swift, Tcl, TypeScript, Uiua, Unison, V, Wren, YASL, and Zig.
 
-In cases of languages requiring build infrastructure, or older/esoteric
-languages which don't support file reads or interaction via stdio, the language
-template may include a ./run.sh command that receives the input file and part
-as arguments. This script can then do the appropriate bootstrapping of the main
-implementation.
+For languages requiring build infrastructure or special handling, the template may include additional configuration files or a `run.sh` wrapper script.
