@@ -351,6 +351,16 @@ ucm run.compiled solution.uc $input_file $part
 packages = ["vlang"]
 run = "v run solution.v $input_file $part"
 
+[vimgolf]
+packages = ["vim"]
+run = '''
+tmp=$(mktemp)
+(echo "$part"; cat "$input_file") > "$tmp"
+vim -u NONE -s <(printf '%b' "$(cat solution.keys)") "$tmp"
+cat "$tmp"
+rm "$tmp"
+'''
+
 [wren]
 customized = true
 run = "wren_cli solution.wren $input_file $part"
