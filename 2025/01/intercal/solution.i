@@ -1,6 +1,7 @@
         DO (5050) NEXT
 
-        PLEASE DON'T FORGET: .14 is array index, .15 is the rotation value, .16 is the seen count
+        PLEASE DON'T FORGET: .14 is array index, .15 is the rotation value
+        PLEASE DON'T FORGET: .16 is the seen count, .26 is part 2 seen count
         DO .14 <- #3
         DO .15 <- #1050
         DO .16 <- #0
@@ -60,10 +61,14 @@
 
         PLEASE DON'T FORGET: solve the actual problem here
 
+        PLEASE DON'T FORGET: we need to snag the pre-mutated position for part 2
+        DO .27 <- .15
+
         PLEASE DON'T FORGET: .19 is the subtract term, zeroed if it's useless
         DO .5101 <- .17
         DO .5102 <- #76
         DO (5110) NEXT
+        DO .25 <- .5100
         DO .1 <- .15
         DO .2 <- .18
         DO (1010) NEXT
@@ -80,7 +85,7 @@
         DO .2 <- '?".5100$#1"'~#1
         DO (1030) NEXT
         
-        PLEASE DON'T FORGET: now we just add the terms to get whatever happened
+        PLEASE DON'T FORGET: now we just add the terms. Who needs conditionals?
         DO .1 <- .19
         DO .2 <- .3
         DO (1000) NEXT
@@ -97,6 +102,7 @@
         DO .2 <- .3
         DO (1010) NEXT
         DO .15 <- .3
+        DO .40 <- .15
         PLEASE DON'T READ OUT .15
 
         DO .5101 <- .3
@@ -113,7 +119,77 @@
         DO (1000) NEXT
         DO .15 <- .3
 
-        PLEASE DON'T FORGET: you did, right?
+        PLEASE DON'T FORGET: now for the part two logic
+
+        PLEASE DON'T FORGET: calculate the distance to the zero based on direction
+        DO .1 <- .27
+        DO .2 <- #100
+        DO (1040) NEXT
+        DO .1 <- .3
+        DO .2 <- #100
+        DO (1030) NEXT
+        DO .1 <- .27
+        DO .2 <- .3
+        DO (1010) NEXT
+        DO .29 <- .3
+        
+        PLEASE DON'T FORGET: the leftward distance, zeroed out if we're not going left
+        DO .1 <- .29
+        DO .2 <- .25
+        DO (1030) NEXT
+        DO .30 <- .3
+
+        PLEASE DON'T FORGET: the rightward distance, zeroed out if we're not going left
+        DO .1 <- #100
+        DO .2 <- .29
+        DO (1010) NEXT
+
+        DO .1 <- .3
+        DO .2 <- '?".25$#1"'~#1
+        DO (1030) NEXT
+
+        DO .1 <- .3
+        DO .2 <- .30
+        DO (1000) NEXT
+        DO .30 <- .3
+
+        PLEASE DON'T FORGET: now we have the minimum distance needed to travel to cause one click
+
+        DO .1 <- '?.30$.18'~'#0$#65535'
+        DO .1 <- '&"'.30~.1'~'"?'?.1~.1'$#32768"
+                        ~"#0$#65535"'"$".1~.1"'~#1
+        DO .1 <- '?".1$#1"'~#1
+        DO .5101 <- .30
+        DO .5102 <- #0
+        DO (5100) NEXT
+        DO .2 <- .5100
+        DO (1030) NEXT
+
+        DO .1 <- .26
+        DO .2 <- .3
+        DO (1000) NEXT
+        DO .26 <- .3
+
+        PLEASE DON'T FORGET: and we can calculate multiclicks by subtracting distance and dividing
+        DO .1 <- .18
+        DO .2 <- .30
+        DO (1010) NEXT
+
+        PLEASE DON'T FORGET: zero it out if it's an overflow
+        DO .1 <- '?#1000$.3'~'#0$#65535'
+        DO .1 <- '&"'#1000~.1'~'"?'?.1~.1'$#32768"
+                        ~"#0$#65535"'"$".1~.1"'~#1
+        DO .2 <- .3
+        DO (1030) NEXT
+
+        DO .1 <- .3
+        PLEASE DO .2 <- #100
+        DO (1040) NEXT
+
+        DO .1 <- .26
+        DO .2 <- .3
+        PLEASE DO (1000) NEXT
+        DO .26 <- .3
 
         DO .1 <- .14
         DO (1020) NEXT
@@ -123,10 +199,31 @@
         PLEASE DON'T FORGET: \n\n or EOF
         DO ABSTAIN !17~#256' FROM (100)
         DO .5101 <- .17
-        DO .5102 <- #10
+        PLEASE DO .5102 <- #10
         DO (5110) NEXT
         DO ABSTAIN .5100 FROM (100)
 (200)   PLEASE DON'T STOP LOOPING
+
+        PLEASE DON'T: forget to override .16 with .26 if part 2
+        DO .1 <- ,1 SUB #1
+        PLEASE DO .2 <- #49
+        DO (1010) NEXT
+        DO .50 <- .3
+
+        DO .1 <- .3
+        DO .2 <- .26
+        PLEASE DO (1030) NEXT
+        DO .52 <- .3
+
+        DO .1 <- '?".50$#1"'~#1
+        DO .2 <- .16
+        DO (1030) NEXT
+        DO .51 <- .3
+
+        DO .1 <- .51
+        PLEASE DO .2 <- .52
+        PLEASE DO (1000) NEXT
+        DO .16 <- .3
 
         PLEASE DON'T: forget to turn a number into a string. Painfully.
         DO ,3 <- #65535
