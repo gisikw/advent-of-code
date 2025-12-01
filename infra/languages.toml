@@ -287,6 +287,10 @@ scalac -d . solution.scala
 scala aoc.Solution $input_file $part
 '''
 
+[smalltalk]
+customized = true
+run = "gst -f solution.st $input_file $part"
+
 [spl]
 customized = true
 run = '''

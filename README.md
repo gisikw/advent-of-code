@@ -84,7 +84,7 @@ The runner captures the last line written to STDOUT as the answer and provides f
 
 ## Containerization
 
-All solutions run inside a unified Docker container with Nix devshells. This ensures reproducible environments across 67 supported languages without polluting your local system.
+All solutions run inside a unified Docker container with Nix devshells. This ensures reproducible environments across 68 supported languages without polluting your local system.
 
 The infrastructure lives in `infra/`:
 - **Dockerfile** - NixOS-based container with flakes enabled
@@ -99,6 +99,6 @@ When you run a solution, the CLI mounts the solution directory into the containe
 Each language has a template in `languages/<lang>/` that provides a scaffold accepting an input file and part argument. Templates output the line count and part number as a basic verification that I/O is working.
 
 Supported languages include:
-Ada, Arturo, Ballerina, Bash, Borgo, C, Clojure, COBOL, Crystal, D, Dart, Elixir, Erlang, Forth, Fortran, F#, Gleam, Go, Groovy, Hare, Haskell, Haxe, Idris 2, INTERCAL, Io, Janet, Java, Julia, Koka, Kotlin, Lobster, LOLCODE, Lua, Mercury, MiniScript, MoonScript, Nim, Nix, Node.js, OCaml, Odin, Pascal, Perl, PHP, Pony, Prolog, Python, QBasic, R, Racket, Raku, Red, Roc, Ruby, Rust, Scala, Shakespeare, SQL, Swift, Tcl, TypeScript, Uiua, Unison, V, Wren, YASL, and Zig.
+Ada, Arturo, Ballerina, Bash, Borgo, C, Clojure, COBOL, Crystal, D, Dart, Elixir, Erlang, Forth, Fortran, F#, Gleam, Go, Groovy, Hare, Haskell, Haxe, Idris 2, INTERCAL, Io, Janet, Java, Julia, Koka, Kotlin, Lobster, LOLCODE, Lua, Mercury, MiniScript, MoonScript, Nim, Nix, Node.js, OCaml, Odin, Pascal, Perl, PHP, Pony, Prolog, Python, QBasic, R, Racket, Raku, Red, Roc, Ruby, Rust, Scala, Shakespeare, Smalltalk, SQL, Swift, Tcl, TypeScript, Uiua, Unison, V, Wren, YASL, and Zig.
 
 For languages requiring build infrastructure or special handling, the template may include additional configuration files or a `run.sh` wrapper script.

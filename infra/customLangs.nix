@@ -219,6 +219,27 @@
     ];
   };
 
+  smalltalk = {
+    extraPkgs = [
+      (pkgs.gnu-smalltalk.overrideAttrs (old: {
+        postPatch = (old.postPatch or "") + ''
+          # Fix iconv const pointer incompatibility with newer glibc
+          substituteInPlace packages/iconv/iconv.c \
+            --replace "const char *inbuf;" "char *inbuf;"
+
+          # Fix expat SkippedEntityHandler signature (added is_parameter_entity arg in expat 2.3.0)
+          substituteInPlace packages/xml/expat/expat.c \
+            --replace \
+              "gst_SkippedEntityHandler (void *userData,
+			  const XML_Char * entityName)" \
+              "gst_SkippedEntityHandler (void *userData,
+			  const XML_Char * entityName,
+			  int is_parameter_entity)"
+        '';
+      }))
+    ];
+  };
+
   wren = {
     extraPkgs = [
       (pkgs.stdenv.mkDerivation {
