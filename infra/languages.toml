@@ -374,6 +374,13 @@ ucm run.compiled solution.uc $input_file $part
 packages = ["vlang"]
 run = "v run solution.v $input_file $part"
 
+[vala]
+packages = ["vala", "pkg-config", "glib"]
+run = '''
+valac solution.vala
+./solution $input_file $part
+'''
+
 [vimgolf]
 packages = ["vim"]
 run = '''
