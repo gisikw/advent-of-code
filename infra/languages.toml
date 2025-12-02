@@ -22,6 +22,10 @@ gnatmake -o solution solution.adb
 customized = true
 run = "arturo solution.art $input_file $part"
 
+[awk]
+packages = ["gawk"]
+run = "awk -v part=$part -f solution.awk $input_file"
+
 [ballerina]
 packages = ["ballerina"]
 run = "bal run solution.bal -- -CinputFile=$input_file -Cpart=$part"
@@ -45,9 +49,20 @@ gcc solution.c -o solution
 ./solution $input_file $part
 '''
 
+[clisp]
+packages = ["sbcl"]
+run = "sbcl --script solution.lisp $input_file $part"
+
 [clojure]
 packages = ["clojure", "openjdk"]
 run = "clojure -M -i solution.clj -m solution $input_file $part"
+
+[cpp]
+packages = ["gcc"]
+run = '''
+g++ solution.cpp -o solution
+./solution $input_file $part
+'''
 
 [cobol]
 packages = ["gnu-cobol"]
@@ -297,6 +312,10 @@ run = '''
 python -m pip install shakespearelang
 (echo $part; echo $input_file) | shakespeare run solution.spl
 '''
+
+[scheme]
+packages = ["guile"]
+run = "guile -s solution.scm $input_file $part"
 
 [sql]
 packages = ["sqlite"]
