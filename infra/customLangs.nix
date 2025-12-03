@@ -1,7 +1,12 @@
 { pkgs, lib, roc, system }:
 
+let
+  isLinux = builtins.match ".*-linux" system != null;
+  isX86Linux = system == "x86_64-linux";
+in
 {
-  arturo = {
+  # arturo only available as x86_64-linux binary
+  arturo = if isX86Linux then {
     extraPkgs = [
       (pkgs.stdenv.mkDerivation {
         pname = "arturo";
@@ -42,7 +47,7 @@
         '';
       })
     ];
-  };
+  } else {};
 
   borgo = {
     extraPkgs = [
@@ -77,7 +82,8 @@
     ];
   };
 
-  io = {
+  # io uses glibc-specific features, linux only
+  io = if isLinux then {
     extraPkgs = [
       (pkgs.stdenv.mkDerivation rec {
         pname = "io";
@@ -124,7 +130,7 @@
         '';
       })
     ];
-  };
+  } else {};
 
   lolcode = {
     extraPkgs = [
@@ -208,7 +214,8 @@
     ];
   };
 
-  swift = {
+  # swift with Dispatch/Foundation is linux-only in nixpkgs
+  swift = if isLinux then {
     customShell = pkgs.mkShell.override { inherit (pkgs.swift) stdenv; } {
       buildInputs = [
         pkgs.swift
@@ -219,7 +226,7 @@
         export LD_LIBRARY_PATH="${pkgs.swiftPackages.Dispatch}/lib"
       '';
     };
-  };
+  } else {};
 
   yasl = {
     extraPkgs = [

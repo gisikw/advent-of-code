@@ -20,6 +20,7 @@ gnatmake -o solution solution.adb
 
 [arturo]
 customized = true
+force_x86 = true
 run = "arturo solution.art $input_file $part"
 
 [awk]
@@ -113,7 +114,7 @@ packages = ["dotnet-sdk_8"]
 run = "dotnet fsi solution.fsx $input_file $part"
 
 [gleam]
-packages = ["gleam erlang"]
+packages = ["gleam", "erlang"]
 run = "gleam run $input_file $part"
 
 [go]
@@ -155,6 +156,7 @@ ick solution.i
 
 [io]
 customized = true
+force_x86 = true
 run = "io solution.io"
 
 [janet]
@@ -343,6 +345,7 @@ sqlite3 "$db" "SELECT text FROM output;"
 
 [swift]
 customized = true
+force_x86 = true
 run = '''
 swiftc solution.swift
 ./solution $input_file $part
