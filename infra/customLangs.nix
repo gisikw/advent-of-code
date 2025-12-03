@@ -169,9 +169,42 @@
     ];
   };
 
-  spl = {
+  shakespeare = {
     extraPkgs = [
-      (pkgs.python311.withPackages (ps: ["ps.pip"]))
+      (let
+        python = pkgs.python311;
+        tatsu = python.pkgs.buildPythonPackage {
+          pname = "TatSu";
+          version = "5.6.1";
+          format = "wheel";
+          src = pkgs.fetchurl {
+            url = "https://files.pythonhosted.org/packages/54/07/1a48c6d8a177bd16630fe32c856ac4fc29122d5a56b1b374f6e961b189a1/TatSu-5.6.1-py2.py3-none-any.whl";
+            sha256 = "sha256-fPA+FasXD9kUibhVzYpJQrbNGsXg6ry4Unk6cWYA2/A=";
+          };
+          doCheck = false;
+        };
+        click = python.pkgs.buildPythonPackage {
+          pname = "click";
+          version = "7.1.2";
+          format = "wheel";
+          src = pkgs.fetchurl {
+            url = "https://files.pythonhosted.org/packages/d2/3d/fa76db83bf75c4f8d338c2fd15c8d33fdd7ad23a9b5e57eb6c5de26b430e/click-7.1.2-py2.py3-none-any.whl";
+            sha256 = "sha256-2syon0v63V3j10ibfIpWbu4NNnYzP7tQAwJjiUw4wNw=";
+          };
+          doCheck = false;
+        };
+        shakespearelang = python.pkgs.buildPythonPackage {
+          pname = "shakespearelang";
+          version = "1.0.0";
+          format = "wheel";
+          src = pkgs.fetchurl {
+            url = "https://files.pythonhosted.org/packages/77/7d/70582155d49e01825726ce64e8014221d011ee130b0a37d823cbcadb1c98/shakespearelang-1.0.0-py3-none-any.whl";
+            sha256 = "sha256-u6jkM/enAUd0KorENJS0Bz3sYOXy0K86rIf6TexrvAI=";
+          };
+          propagatedBuildInputs = [ tatsu click ];
+          doCheck = false;
+        };
+      in python.withPackages (ps: [ shakespearelang ]))
     ];
   };
 

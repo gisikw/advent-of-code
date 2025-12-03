@@ -306,12 +306,9 @@ scala aoc.Solution $input_file $part
 customized = true
 run = "gst -f solution.st $input_file $part"
 
-[spl]
+[shakespeare]
 customized = true
-run = '''
-python -m pip install shakespearelang
-(echo $part; echo $input_file) | shakespeare run solution.spl
-'''
+run = "(echo $part; echo $input_file) | shakespeare run solution.spl"
 
 [scheme]
 packages = ["guile"]

@@ -1,8 +1,4 @@
 # Immediate Work
-- Add support for 25+ new languages
-- Rename spl -> shakespeare
-- Decouple shakespare from pip install
-- Audit for unneeded crates
 - Reevalute 9999 special casing
 
 # Languages to add
