@@ -12,6 +12,17 @@ pub fn run(example_name: Option<String>, part: Option<usize>, confirmation: Opti
     let mut context = RunContext::new(example_name, part, confirmation);
 
     context.execute_solution();
+
+    // Skip all post-processing if flagged
+    if context.skip_prompts {
+        if context.result.is_none() {
+            println!("\x1b[33m⏭ No output - skipping verification.\x1b[0m");
+        } else {
+            println!("\x1b[33m⏭ Skipping verification.\x1b[0m");
+        }
+        return;
+    }
+
     if context.check_solution().is_none() {
         if context.submit_solution() {
             context.save_solution();
@@ -33,6 +44,7 @@ struct Settings {
 struct RunContext {
     settings: Settings,
     result: Option<String>,
+    skip_prompts: bool,
 }
 
 impl RunContext {
@@ -50,6 +62,7 @@ impl RunContext {
                 confirmation,
             },
             result: None,
+            skip_prompts: false,
         }
     }
 
@@ -62,8 +75,7 @@ impl RunContext {
             echo 'input_file=/problem/{example}.txt' >> "$run"
             echo 'part={part}' >> "$run"
             nix eval --raw /infra#langMeta.x86_64-linux.{lang}.run >> "$run"
-            script -q -e -c "nix develop /infra#{lang} --command sh $run" /script;
-            tail -n 3 /script | head -n 1 > /out
+            script -q -e -c "nix develop /infra#{lang} --command sh $run" /script_output
             "#,
             lang = self.settings.language,
             example = self.settings.example_name,
@@ -72,8 +84,9 @@ impl RunContext {
         let current_dir = env::current_dir().expect("Failed to get current dir");
         let infra_path = current_dir.join("infra");
 
-        let output = tempfile::NamedTempFile::new().expect("failed to create temp file");
-        let out_path = output
+        // Create temp file for script output
+        let script_output = tempfile::NamedTempFile::new().expect("failed to create temp file");
+        let script_output_path = script_output
             .path()
             .to_str()
             .expect("failed to generate temp path");
@@ -106,16 +119,11 @@ impl RunContext {
             .arg("-v")
             .arg(format!("{}:/code", &self.settings.solution_path))
             .arg("-v")
-            .arg(format!("{}:/out", out_path))
+            .arg(format!("{}:/script_output", script_output_path))
             .arg("aoc-nix-image")
             .args(&["sh", "-c", &full_command])
             .status()
             .expect("Failed to execute Docker container");
-
-        // Reset terminal state after docker exits
-        let _ = Command::new("stty")
-            .arg("sane")
-            .status();
 
         // If we were interrupted, exit cleanly
         if interrupted.load(Ordering::SeqCst) {
@@ -131,14 +139,45 @@ impl RunContext {
             exit(1);
         }
 
-        let mut output_file = output.into_file();
-        let mut answer = String::new();
-        output_file
-            .read_to_string(&mut answer)
-            .expect("Failed to read answer from output file");
+        // Read full script output
+        let mut script_file = script_output.into_file();
+        let mut full_output = String::new();
+        script_file
+            .read_to_string(&mut full_output)
+            .expect("Failed to read script output");
 
-        let answer = answer.trim_end();
-        self.result = Some(answer.to_string());
+        // Check for skip directive
+        if full_output.contains("!aoc skip") {
+            self.skip_prompts = true;
+        }
+
+        // Strip ANSI escape sequences for answer extraction
+        let ansi_regex = Regex::new(r"\x1b\[[0-9;]*[a-zA-Z]|\x1b\].*?\x07|\r").unwrap();
+        let clean_output = ansi_regex.replace_all(&full_output, "");
+
+        // Extract answer as last non-empty line, filtering out:
+        // - empty lines
+        // - script command metadata lines
+        // - nix evaluating derivation lines
+        let answer = clean_output
+            .lines()
+            .filter(|line| {
+                let trimmed = line.trim();
+                !trimmed.is_empty()
+                    && !trimmed.starts_with("Script started on")
+                    && !trimmed.starts_with("Script done on")
+                    && !trimmed.starts_with("evaluating derivation")
+            })
+            .last()
+            .map(|s| s.trim().to_string());
+
+        match answer {
+            Some(ans) => self.result = Some(ans),
+            None => {
+                // No non-empty lines - skip processing
+                self.skip_prompts = true;
+            }
+        }
     }
 
     fn check_solution(&mut self) -> Option<bool> {
