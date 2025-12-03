@@ -92,6 +92,10 @@ pub fn run(language: &Option<String>) {
         _ => Err(anyhow!("Testing all languages not yet supported")),
     };
 
+    if let Err(ref e) = result {
+        eprintln!("Test failed: {:?}", e);
+    }
+
     exit(if result.is_ok() { 0 } else { 1 })
 }
 
@@ -115,9 +119,9 @@ fn create_and_run_example(lang: &str, worktree: &Worktree) -> Result<()> {
         return Err(anyhow!("aoc new failed for {lang}"));
     }
 
-    let input_path = worktree.path().join("/9999/25/inputs/input.txt");
+    let input_path = worktree.path().join("9999/25/inputs/input.txt");
     fs::create_dir_all(input_path.parent().unwrap())?;
-    let mut f = fs::File::create(input_path)?;
+    let mut f = fs::File::create(&input_path)?;
     writeln!(f, "line 1\nline 2\nline 3")?;
 
     let output = Command::new("./aoc")
