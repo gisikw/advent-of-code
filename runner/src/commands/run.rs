@@ -5,7 +5,8 @@ use reqwest::blocking::Client;
 use std::collections::HashMap;
 use std::env;
 use std::io::Read;
-use std::process::{exit, Command};
+use std::process::{exit, Command, Stdio};
+use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
 
 pub fn run(example_name: Option<String>, part: Option<usize>, confirmation: Option<bool>) {
     let mut context = RunContext::new(example_name, part, confirmation);
@@ -77,8 +78,25 @@ impl RunContext {
             .to_str()
             .expect("failed to generate temp path");
 
+        // Generate a unique container name for cleanup
+        let container_name = format!("aoc-run-{}", std::process::id());
+
+        // Set up SIGINT handler to kill the container
+        let container_name_clone = container_name.clone();
+        let interrupted = Arc::new(AtomicBool::new(false));
+        let interrupted_clone = interrupted.clone();
+        ctrlc::set_handler(move || {
+            interrupted_clone.store(true, Ordering::SeqCst);
+            let _ = Command::new("docker")
+                .args(&["kill", &container_name_clone])
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .status();
+        }).expect("Failed to set Ctrl-C handler");
+
         let status = Command::new("docker")
             .args(&["run", "--rm", "-t"])
+            .args(&["--name", &container_name])
             .args(&["--platform", "linux/amd64"])
             .args(&["-v", "aoc-nix:/nix"])
             .arg("-v")
@@ -94,10 +112,21 @@ impl RunContext {
             .status()
             .expect("Failed to execute Docker container");
 
+        // Reset terminal state after docker exits
+        let _ = Command::new("stty")
+            .arg("sane")
+            .status();
+
+        // If we were interrupted, exit cleanly
+        if interrupted.load(Ordering::SeqCst) {
+            eprintln!("\nInterrupted.");
+            exit(130);
+        }
+
         if !status.success() {
             eprintln!(
                 "Docker run failed with exit code {}",
-                status.code().unwrap()
+                status.code().unwrap_or(-1)
             );
             exit(1);
         }

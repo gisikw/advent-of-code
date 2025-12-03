@@ -1,5 +1,7 @@
 # Immediate Work
 - Reevalute 9999 special casing
+- Bypass Docker for languages with native nix packages
+- Support "!aoc skip" marker to bypass submit/save prompts
 
 # Languages to add
 - Whitespace

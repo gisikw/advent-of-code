@@ -99,7 +99,7 @@ erl -noshell -run solution main $input_file $part -s init stop
 
 [forth]
 packages = ["gforth"]
-run = "gforth solution.fs $input_file $part | cat"
+run = "gforth solution.fs $input_file $part"
 
 [fortran]
 packages = ["gfortran"]
@@ -261,7 +261,7 @@ run = "swipl solution.pl $input_file $part"
 
 [python]
 packages = ["python314"]
-run = "python solution.py $input_file $part"
+run = "python -u solution.py $input_file $part"
 
 [qbasic]
 packages = ["yabasic"]
