@@ -100,6 +100,7 @@ erl -noshell -run solution main $input_file $part -s init stop
 
 [forth]
 packages = ["gforth"]
+force_x86 = true
 run = "gforth solution.fs $input_file $part"
 
 [fortran]

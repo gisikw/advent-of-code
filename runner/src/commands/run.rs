@@ -8,6 +8,53 @@ use std::io::Read;
 use std::process::{exit, Command, Stdio};
 use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
 
+/// Detect the nix system string for the current host
+fn detect_nix_system() -> Option<String> {
+    let os = std::env::consts::OS;
+    let arch = std::env::consts::ARCH;
+
+    let nix_arch = match arch {
+        "x86_64" => "x86_64",
+        "aarch64" => "aarch64",
+        _ => return None,
+    };
+
+    let nix_os = match os {
+        "linux" => "linux",
+        "macos" => "darwin",
+        _ => return None,
+    };
+
+    Some(format!("{}-{}", nix_arch, nix_os))
+}
+
+/// Check if nix command is available on the host
+fn has_nix() -> bool {
+    Command::new("nix")
+        .arg("--version")
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()
+        .map(|s| s.success())
+        .unwrap_or(false)
+}
+
+/// Check if a language requires x86 (via force_x86 flag in langMeta)
+fn lang_requires_x86(lang: &str, nix_system: &str, infra_path: &std::path::Path) -> bool {
+    let output = Command::new("nix")
+        .arg("eval")
+        .arg("--json")
+        .arg(format!("{}#langMeta.{}.{}.force_x86", infra_path.display(), nix_system, lang))
+        .output();
+
+    match output {
+        Ok(out) if out.status.success() => {
+            String::from_utf8_lossy(&out.stdout).trim() == "true"
+        }
+        _ => false, // If we can't check, assume it doesn't require x86
+    }
+}
+
 pub fn run(example_name: Option<String>, part: Option<usize>, confirmation: Option<bool>) {
     let mut context = RunContext::new(example_name, part, confirmation);
 
@@ -67,6 +114,140 @@ impl RunContext {
     }
 
     fn execute_solution(&mut self) {
+        let current_dir = env::current_dir().expect("Failed to get current dir");
+        let infra_path = current_dir.join("infra");
+
+        // Determine execution strategy: use native nix if available and not force_x86
+        let nix_system = detect_nix_system();
+        let use_native = if let Some(ref system) = nix_system {
+            has_nix() && !lang_requires_x86(&self.settings.language, system, &infra_path)
+        } else {
+            false
+        };
+
+        let output = if use_native {
+            let nix_system = nix_system.unwrap();
+            match self.execute_native(&infra_path, &nix_system) {
+                Ok(out) => out,
+                Err(e) => {
+                    eprintln!("Native nix execution failed: {}", e);
+                    exit(1);
+                }
+            }
+        } else {
+            self.execute_docker(&infra_path)
+        };
+
+        self.process_output(&output);
+    }
+
+    /// Execute solution using native nix on the host.
+    /// Returns Ok(output) on success (including solution failures - those are valid results).
+    /// Returns Err only for infrastructure failures (nix not working, shell won't build).
+    fn execute_native(&self, infra_path: &std::path::Path, nix_system: &str) -> Result<String, String> {
+        let current_dir = env::current_dir().expect("Failed to get current dir");
+        let input_path = current_dir
+            .join(&self.settings.problem_path)
+            .join(format!("{}.txt", &self.settings.example_name));
+        let solution_path = current_dir.join(&self.settings.solution_path);
+
+        // Get the run command from langMeta
+        let run_cmd_output = Command::new("nix")
+            .arg("eval")
+            .arg("--raw")
+            .arg(format!("{}#langMeta.{}.{}.run", infra_path.display(), nix_system, &self.settings.language))
+            .output()
+            .map_err(|e| format!("Failed to get run command: {}", e))?;
+
+        if !run_cmd_output.status.success() {
+            return Err(format!("Failed to evaluate langMeta: {}",
+                String::from_utf8_lossy(&run_cmd_output.stderr)));
+        }
+
+        let run_script = String::from_utf8_lossy(&run_cmd_output.stdout);
+
+        // Create temp file for script output (for answer extraction)
+        let script_output = tempfile::NamedTempFile::new()
+            .map_err(|e| format!("Failed to create temp file: {}", e))?;
+        let script_output_path = script_output.path().to_path_buf();
+
+        // Build command that uses script to capture output while streaming
+        // The inner command runs the solution; script captures everything
+        let inner_command = format!(
+            r#"set -euo pipefail
+input_file={}
+part={}
+{}"#,
+            input_path.display(),
+            self.settings.part,
+            run_script
+        );
+
+        // Use script to capture output while streaming to terminal
+        // macOS: script [-q] file command...
+        // Linux: script [-q] [-c command] file
+        let full_command = if cfg!(target_os = "macos") {
+            format!(
+                "script -q {} nix develop {}#{} --command sh -c {}",
+                script_output_path.display(),
+                infra_path.display(),
+                &self.settings.language,
+                shell_escape::escape(inner_command.into()),
+            )
+        } else {
+            format!(
+                "script -q -e -c 'nix develop {}#{} --command sh -c {}' {}",
+                infra_path.display(),
+                &self.settings.language,
+                shell_escape::escape(inner_command.into()),
+                script_output_path.display()
+            )
+        };
+
+        // Set up SIGINT handler
+        let interrupted = Arc::new(AtomicBool::new(false));
+        let interrupted_clone = interrupted.clone();
+        let _ = ctrlc::set_handler(move || {
+            interrupted_clone.store(true, Ordering::SeqCst);
+        });
+
+        // Execute - use status() to inherit stdio for streaming
+        let status = Command::new("sh")
+            .arg("-c")
+            .arg(&full_command)
+            .current_dir(&solution_path)
+            .status()
+            .map_err(|e| format!("Failed to execute: {}", e))?;
+
+        if interrupted.load(Ordering::SeqCst) {
+            eprintln!("\nInterrupted.");
+            exit(130);
+        }
+
+        // Read the captured output for answer extraction
+        let mut full_output = String::new();
+        std::fs::File::open(&script_output_path)
+            .and_then(|mut f| f.read_to_string(&mut full_output))
+            .map_err(|e| format!("Failed to read script output: {}", e))?;
+
+        // Check if this was an infra failure vs solution failure
+        // If output contains "error: building" or similar nix errors, it's infra
+        if !status.success() {
+            let is_nix_error = full_output.contains("error: builder for")
+                || full_output.contains("error: building")
+                || full_output.contains("error: attribute")
+                || full_output.contains("error: flake");
+
+            if is_nix_error {
+                return Err(format!("nix build failed"));
+            }
+            // Otherwise it's a solution failure - that's fine, we got output
+        }
+
+        Ok(full_output)
+    }
+
+    fn execute_docker(&self, infra_path: &std::path::Path) -> String {
         let full_command = format!(
             r#"
             run=$(mktemp)
@@ -81,8 +262,6 @@ impl RunContext {
             example = self.settings.example_name,
             part = self.settings.part,
         );
-        let current_dir = env::current_dir().expect("Failed to get current dir");
-        let infra_path = current_dir.join("infra");
 
         // Create temp file for script output
         let script_output = tempfile::NamedTempFile::new().expect("failed to create temp file");
@@ -98,14 +277,14 @@ impl RunContext {
         let container_name_clone = container_name.clone();
         let interrupted = Arc::new(AtomicBool::new(false));
         let interrupted_clone = interrupted.clone();
-        ctrlc::set_handler(move || {
+        let _ = ctrlc::set_handler(move || {
             interrupted_clone.store(true, Ordering::SeqCst);
             let _ = Command::new("docker")
                 .args(&["kill", &container_name_clone])
                 .stdout(Stdio::null())
                 .stderr(Stdio::null())
                 .status();
-        }).expect("Failed to set Ctrl-C handler");
+        });
 
         let status = Command::new("docker")
             .args(&["run", "--rm", "-t"])
@@ -146,20 +325,29 @@ impl RunContext {
             .read_to_string(&mut full_output)
             .expect("Failed to read script output");
 
+        full_output
+    }
+
+    fn process_output(&mut self, full_output: &str) {
         // Check for skip directive
         if full_output.contains("!aoc skip") {
             self.skip_prompts = true;
         }
 
-        // Strip ANSI escape sequences for answer extraction
-        let ansi_regex = Regex::new(r"\x1b\[[0-9;]*[a-zA-Z]|\x1b\].*?\x07|\r").unwrap();
-        let clean_output = ansi_regex.replace_all(&full_output, "");
+        // Strip ANSI escape sequences and control characters for answer extraction
+        // Replace escape sequences that do cursor movement/erase with newlines
+        // to preserve line boundaries, then strip remaining control chars
+        let erase_regex = Regex::new(r"\x1b\[K").unwrap();  // Erase to end of line
+        let with_newlines = erase_regex.replace_all(full_output, "\n");
+        let ansi_regex = Regex::new(r"\x1b\[[0-9;]*[a-zA-Z]|\x1b\].*?\x07|\r|\x08|\^D").unwrap();
+        let clean_output = ansi_regex.replace_all(&with_newlines, "");
 
         // Extract answer as last non-empty line, filtering out:
         // - empty lines
         // - script command metadata lines
         // - nix evaluating derivation lines
-        let answer = clean_output
+        // - nix warning/copying lines
+        let filtered_lines: Vec<_> = clean_output
             .lines()
             .filter(|line| {
                 let trimmed = line.trim();
@@ -167,9 +355,12 @@ impl RunContext {
                     && !trimmed.starts_with("Script started on")
                     && !trimmed.starts_with("Script done on")
                     && !trimmed.starts_with("evaluating derivation")
+                    && !trimmed.starts_with("warning:")
+                    && !trimmed.starts_with("copying")
+                    && !trimmed.contains("/1 built")
             })
-            .last()
-            .map(|s| s.trim().to_string());
+            .collect();
+        let answer = filtered_lines.last().map(|s| s.trim().to_string());
 
         match answer {
             Some(ans) => self.result = Some(ans),

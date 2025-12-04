@@ -15,6 +15,7 @@ reqwest = { version = "0.12.8", features = ["blocking"] }
 serde = { version = "1.0.213", features = ["derive"] }
 serde_yaml = "0.9.34"
 tempfile = "3.20.0"
+shell-escape = "0.1.5"
 anyhow = "1.0.98"
 bincode = "1.3.3"
 once_cell = "1.21.3"
