@@ -387,7 +387,7 @@ packages = ["vim"]
 run = '''
 tmp=$(mktemp)
 (echo "$part"; cat "$input_file") > "$tmp"
-vim -u NONE -s <(printf '%b' "$(cat solution.keys)") "$tmp"
+vim -u NONE -s <(printf '%b' "$(sed 's/ #.*//' solution.keys)") "$tmp"
 cat "$tmp"
 rm "$tmp"
 '''

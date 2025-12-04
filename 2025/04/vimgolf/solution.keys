@@ -1,0 +1,11 @@
+:s/2/@r/e\x0dV"gDG # @g is 1 for part 1, @r for part 2
+ohk\x16\x162j2lyGpVjjgJ04l"zx0:s/[^@x]//ge\x16\x0d:s/.*/\\=(strlen(submatch(0))<4)?1:0\x16\x0d"zp:s/1@/1x/e\x16\x0d$"zxx\x16\x0f\x16\x0fjlx"zPl\x1b0v$"addd # @a will swap a @ for x, but only if you have <4 neighbors
+ox@aj0l\x1b:s/x/\\=strlen(getline(2))\x1b0v$"bddd # @b will call @a for each char in the row
+ox@b\x1b:s/x/\\=line('.')-1\x1b0v$"cddd # @c will call @b for each row in the grid
+oGVggyGpVGgJ:s/[^@]//ge\x16\x0d:s/.*/\\=strlen(submatch(0))\x16\x0d0v$"fddd\x1b0v$"eddd # @e will count all @'s in the buffer and store it in @f
+o:%s/x/./g\x16\x0dggjl\x16\x1b@c@r\x1b0v$"rddd # @r will replace x's with . or crash, then call @c, then recurse
+yypVr.ggyyPVr.\x16GI.\x1bgg$\x16GA.\x1b # wrap the grid with empty spaces on all sides
+Go\x1b@e # count the grid once
+ggjl\x1b@c@g # traverse the grid, then maybe to part two
+Go\x1b"fp@eGA-\x1b"fp:s/.*/\\=eval(submatch(0))\x0d # compute the difference between the new @ count
+ZZ # bye
