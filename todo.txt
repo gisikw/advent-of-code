@@ -25,6 +25,7 @@
 - Beef
 - Darklang
 - Jai
+- dc
 
 # Future Ideas
 - Enhance fetch to check problem for previously confirmed solutions
