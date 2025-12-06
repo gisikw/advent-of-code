@@ -127,6 +127,7 @@ packages = ["groovy"]
 run = "groovy solution.groovy $input_file $part"
 
 [hare]
+force_x86 = true
 packages = ["hare"]
 run = "hare run solution.ha $input_file $part"
 
@@ -358,7 +359,7 @@ run = "tclsh solution.tcl $input_file $part"
 
 [typescript]
 packages = ["nodejs_24"]
-run = "npx -y ts-node solution.ts $input_file $part"
+run = "NODE_NO_WARNINGS=1 npx -y ts-node solution.ts $input_file $part"
 
 [uiua]
 packages = ["uiua"]
