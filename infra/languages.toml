@@ -307,6 +307,7 @@ scala aoc.Solution $input_file $part
 '''
 
 [smalltalk]
+force_x86 = true
 customized = true
 run = "gst -f solution.st $input_file $part"
 
