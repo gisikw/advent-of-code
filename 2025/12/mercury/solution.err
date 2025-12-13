@@ -1,0 +1,3 @@
+solution.m:004: In module `solution':
+solution.m:004:   warning: module `require' is imported in the interface, but
+solution.m:004:   it is not used in the interface.

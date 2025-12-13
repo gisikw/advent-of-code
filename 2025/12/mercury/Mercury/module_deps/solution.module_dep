@@ -1,0 +1,14 @@
+module(2, "solution.m",
+	solution,
+	{},
+	{builtin, io, private_builtin, require},
+	{int, list, string, (string.format), (string.parse_util)},
+	{},
+	{},
+	{},
+	{},
+	{},
+	no_foreign_export,
+	no_main,
+	{}
+).

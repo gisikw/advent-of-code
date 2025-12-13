@@ -1,0 +1,6 @@
+:- module solution.
+:- interface.
+:- use_module io.
+:- use_module require.
+:- pred main(io.io, io.io).
+:- mode main((builtin.di), (builtin.uo)) is det.

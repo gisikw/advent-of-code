@@ -1,0 +1,29 @@
+// Automatically generated from `solution.m'
+// by the Mercury compiler,
+// version 22.01.8
+// configured for aarch64-apple-darwin24.4.0.
+// Do not edit.
+#ifndef SOLUTION_MH
+#define SOLUTION_MH
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifdef MR_HIGHLEVEL_CODE
+#include "mercury.h"
+#else
+  #ifndef MERCURY_HDR_EXCLUDE_IMP_H
+  #include "mercury_imp.h"
+  #endif
+#endif
+#ifdef MR_DEEP_PROFILING
+#include "mercury_deep_profiling.h"
+#endif
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* SOLUTION_MH */
