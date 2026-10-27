@@ -84,7 +84,7 @@ The runner captures the last line written to STDOUT as the answer and provides f
 
 ## Containerization
 
-All solutions run inside a unified Docker container with Nix devshells. This ensures reproducible environments across 74 supported languages without polluting your local system.
+All solutions run inside a unified Docker container with Nix devshells. This ensures reproducible environments across 99 supported languages without polluting your local system.
 
 The infrastructure lives in `infra/`:
 - **Dockerfile** - NixOS-based container with flakes enabled
@@ -99,6 +99,6 @@ When you run a solution, the CLI mounts the solution directory into the containe
 Each language has a template in `languages/<lang>/` that provides a scaffold accepting an input file and part argument. Templates output the line count and part number as a basic verification that I/O is working.
 
 Supported languages include:
-Ada, AWK, Arturo, Ballerina, Bash, Borgo, C, C++, Clojure, COBOL, Common Lisp, Crystal, D, Dart, Elixir, Erlang, Forth, Fortran, F#, Gleam, Go, Groovy, Hare, Haskell, Haxe, Idris 2, INTERCAL, Io, Janet, Java, Julia, Koka, Kotlin, Lobster, LOLCODE, Lua, Mercury, MiniScript, MoonScript, Nim, Nix, Node.js, OCaml, Odin, Pascal, Perl, PHP, Pony, Prolog, Python, QBasic, R, Racket, Raku, Red, Roc, Ruby, Rust, Scala, Scheme, Shakespeare, Smalltalk, SQL, Swift, Tcl, TypeScript, Uiua, Unison, V, Vala, Vimgolf, Wren, YASL, and Zig.
+Ada, Algol 68, ATS, AWK, Arturo, Ballerina, Bash, Borgo, BQN, C, C3, C++, Clojure, COBOL, Common Lisp, Crystal, Curry, D, Dart, Emacs Lisp, Elixir, Elvish, Erlang, Factor, Fennel, Forth, Fortran, F#, Gleam, Go, Groovy, Hare, Haskell, Haxe, Icon, Idris 2, Inko, INTERCAL, Io, J, Janet, Java, jq, Julia, K, Koka, Kotlin, Lean 4, LFE, Lobster, LOLCODE, Lua, Mercury, MiniScript, MoonScript, Nelua, Nim, Nix, Node.js, Nushell, OCaml, Odin, Pascal, Perl, Pharo, PHP, PicoLisp, Pony, PostScript, Prolog, Python, QBasic, R, Racket, Raku, Red, Rexx, Roc, Ruby, Rust, Scala, Scheme, Shakespeare, Smalltalk, SNOBOL4, SQL, Standard ML, Swift, Tcl, TXR, TypeScript, Uiua, Unison, V, Vala, Vimgolf, Wren, YASL, and Zig.
 
 For languages requiring build infrastructure or special handling, the template may include additional configuration files or a `run.sh` wrapper script.

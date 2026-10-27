@@ -1,0 +1,7 @@
+local io = require 'io'
+local arg = require 'arg'
+local f = arg[1]
+local p = arg[2]
+local n = 0
+for _ in io.lines(f) do n = n + 1 end
+print('Received ' .. n .. ' lines of input for part ' .. p)

@@ -1,0 +1,5 @@
+(let* ((f (nth 0 command-line-args-left))
+       (p (nth 1 command-line-args-left))
+       (n (with-temp-buffer (insert-file-contents f) (count-lines (point-min) (point-max)))))
+  (princ (format "Received %d lines of input for part %s\n" n p))
+  (setq command-line-args-left nil))

@@ -1,0 +1,8 @@
+BEGIN
+  STRING f = argv (4), p = argv (5);
+  FILE in file; INT n := 0; BOOL done := FALSE;
+  VOID (open (in file, f, stand in channel));
+  on logical file end (in file, (REF FILE x) BOOL: done := TRUE);
+  WHILE STRING s; get (in file, (s, new line)); NOT done DO n +:= 1 OD;
+  print (("Received ", whole (n, 0), " lines of input for part ", p, new line))
+END

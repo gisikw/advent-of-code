@@ -49,6 +49,13 @@ in
     ];
   } else {};
 
+  # nixpkgs ats2 trips the dangling-symlink check on unused contrib docs
+  ats = {
+    extraPkgs = [
+      (pkgs.ats2.overrideAttrs { dontCheckForBrokenSymlinks = true; })
+    ];
+  };
+
   borgo = {
     extraPkgs = [
       (pkgs.rustPlatform.buildRustPackage rec {
@@ -168,6 +175,42 @@ in
       })
     ];
   };
+
+  # Pharo 13 image (Pharo 14 needs pharo-vm >= 10.3.9; nixpkgs has 10.3.4)
+  pharo = if isLinux then {
+    extraPkgs = [
+      (pkgs.stdenv.mkDerivation {
+        pname = "pharo-st";
+        version = "13.0-build.750";
+
+        src = pkgs.fetchurl {
+          url = "https://files.pharo.org/image/130/Pharo13.0-SNAPSHOT.build.750.sha.81f614957c.arch.64bit.zip";
+          sha256 = "sha256-U9LtnN82tftxhomCH+PEv4jyMHxIAK7W//3hGQeInEM=";
+        };
+
+        nativeBuildInputs = [ pkgs.unzip ];
+        unpackPhase = "unzip $src";
+
+        installPhase = ''
+          mkdir -p $out/share/pharo $out/bin
+          cp *.image $out/share/pharo/Pharo.image
+          cp *.changes $out/share/pharo/Pharo.changes
+          cp *.sources $out/share/pharo/
+          cat > $out/bin/pharo-st <<EOF
+          #!${pkgs.runtimeShell}
+          tmp=\$(mktemp -d)
+          cp $out/share/pharo/* "\$tmp"/
+          chmod u+w "\$tmp"/*
+          ${pkgs.pharo}/bin/pharo --headless "\$tmp/Pharo.image" st "\$@"
+          status=\$?
+          rm -rf "\$tmp"
+          exit \$status
+          EOF
+          chmod +x $out/bin/pharo-st
+        '';
+      })
+    ];
+  } else {};
 
   roc = {
     extraPkgs = [

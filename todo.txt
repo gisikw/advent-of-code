@@ -4,7 +4,6 @@
 
 # Languages to add
 - Whitespace
-- Curry
 - Atomy
 - Velato
 - Piet
@@ -13,7 +12,6 @@
 - Carbon
 - APL
 - Jakt
-- BQN
 - Dex
 - Vale
 - Futhark

@@ -1,0 +1,28 @@
+import std.env
+import std.fs.file (ReadOnlyFile)
+import std.io (BufferedReader)
+import std.stdio (Stdout)
+
+type async Main {
+  fn async main {
+    let args = env.arguments
+    let path = args.get(0)
+    let part = args.get(1)
+    let reader = BufferedReader.new(ReadOnlyFile.new(path.to_path).get)
+    let buf = ByteArray.new
+    let mut n = 0
+
+    loop {
+      match reader.read_line(into: buf, inclusive: true) {
+        case Ok(0) -> break
+        case Ok(_) -> {
+          n += 1
+          buf.clear
+        }
+        case Error(_) -> break
+      }
+    }
+
+    Stdout.new.print('Received ${n} lines of input for part ${part}')
+  }
+}

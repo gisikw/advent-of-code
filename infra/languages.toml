@@ -18,10 +18,22 @@ gnatmake -o solution solution.adb
 ./solution $input_file $part
 '''
 
+[algol68]
+packages = ["algol68g"]
+run = "a68g solution.a68 -- $input_file $part"
+
 [arturo]
 customized = true
 force_x86 = true
 run = "arturo solution.art $input_file $part"
+
+[ats]
+customized = true
+packages = ["gcc"]
+run = '''
+patscc -DATS_MEMALLOC_LIBC -o solution solution.dats
+./solution $input_file $part
+'''
 
 [awk]
 packages = ["gawk"]
@@ -43,10 +55,21 @@ compiler build
 go run . $input_file $part
 '''
 
+[bqn]
+packages = ["cbqn"]
+run = "bqn solution.bqn $input_file $part"
+
 [c]
 packages = ["gcc"]
 run = '''
 gcc solution.c -o solution
+./solution $input_file $part
+'''
+
+[c3]
+packages = ["c3c"]
+run = '''
+c3c compile solution.c3 -o solution
 ./solution $input_file $part
 '''
 
@@ -76,6 +99,13 @@ cobc -x -free solution.cob -o solution
 packages = ["crystal"]
 run = "crystal run solution.cr -- $input_file $part"
 
+[curry]
+packages = ["pakcs"]
+run = '''
+pakcs :load Solution :save :quit
+./Solution $input_file $part
+'''
+
 [d]
 packages = ["dmd"]
 run = '''
@@ -87,9 +117,17 @@ dmd solution.d
 packages = ["dart"]
 run = "dart solution.dart $input_file $part"
 
+[elisp]
+packages = ["emacs-nox"]
+run = "emacs --script solution.el $input_file $part"
+
 [elixir]
 packages = ["elixir"]
 run = "elixir solution.exs"
+
+[elvish]
+packages = ["elvish"]
+run = "elvish solution.elv $input_file $part"
 
 [erlang]
 packages = ["erlang"]
@@ -97,6 +135,15 @@ run = '''
 erlc solution.erl
 erl -noshell -run solution main $input_file $part -s init stop
 '''
+
+[factor]
+force_x86 = true
+packages = ["factor-lang"]
+run = "factor solution.factor $input_file $part"
+
+[fennel]
+packages = ["lua5_4", "lua54Packages.fennel"]
+run = "fennel solution.fnl $input_file $part"
 
 [forth]
 packages = ["gforth"]
@@ -142,12 +189,20 @@ ghc -O2 solution.hs
 packages = ["haxe"]
 run = "haxe --run Solution $input_file $part"
 
+[icon]
+packages = ["icon-lang"]
+run = "icont -s solution.icn -x $input_file $part"
+
 [idris2]
 packages = ["idris2"]
 run = '''
 idris2 -o solution solution.idr
 ./build/exec/solution $input_file $part
 '''
+
+[inko]
+packages = ["inko"]
+run = "inko run solution.inko $input_file $part"
 
 [intercal]
 packages = ["intercal"]
@@ -161,6 +216,10 @@ customized = true
 force_x86 = true
 run = "io solution.io"
 
+[j]
+packages = ["j"]
+run = "jconsole solution.ijs $input_file $part"
+
 [janet]
 packages = ["janet"]
 run = "janet solution.janet $input_file $part"
@@ -172,9 +231,18 @@ javac Main.java
 java Main $input_file $part
 '''
 
+[jq]
+packages = ["jq"]
+run = "jq -R -n -r --arg part $part -f solution.jq $input_file"
+
 [julia]
 packages = ["julia-bin"]
 run = "julia solution.jl $input_file $part"
+
+[k]
+force_x86 = true
+packages = ["ngn-k"]
+run = "k solution.k $input_file $part"
 
 [koka]
 packages = ["koka"]
@@ -186,6 +254,14 @@ run = '''
 kotlinc solution.kt -include-runtime -d solution.jar
 java -jar solution.jar $input_file $part
 '''
+
+[lean]
+packages = ["lean4"]
+run = "lean --run solution.lean $input_file $part"
+
+[lfe]
+packages = ["lfe"]
+run = "lfescript solution.lfe $input_file $part"
 
 [lobster]
 packages = ["lobster"]
@@ -214,6 +290,10 @@ run = "miniscript solution.ms $input_file $part"
 packages = ["luajitPackages.moonscript"]
 run = "moon solution.moon $input_file $part"
 
+[nelua]
+packages = ["nelua", "gcc"]
+run = "nelua solution.nelua $input_file $part"
+
 [nim]
 packages = ["nim"]
 run = '''
@@ -228,6 +308,10 @@ run = "INPUT_FILE=$input_file PART=$part nix eval --raw --impure -f solution.nix
 [node]
 packages = ["nodejs_24"]
 run = "node solution.js $input_file $part"
+
+[nushell]
+packages = ["nushell"]
+run = "nu solution.nu $input_file $part"
 
 [ocaml]
 packages = ["ocaml"]
@@ -248,9 +332,18 @@ fpc solution.pas
 packages = ["perl"]
 run = "perl solution.pl $input_file $part"
 
+[pharo]
+force_x86 = true
+customized = true
+run = "pharo-st solution.st $input_file $part"
+
 [php]
 packages = ["php"]
 run = "php solution.php $input_file $part"
+
+[picolisp]
+packages = ["picolisp"]
+run = "pil solution.l $input_file $part"
 
 [pony]
 packages = ["ponyc"]
@@ -258,6 +351,10 @@ run = '''
 ponyc
 ./code $input_file $part
 '''
+
+[postscript]
+packages = ["ghostscript"]
+run = "gs -q -dNOSAFER -dBATCH -dNODISPLAY -sInputFile=$input_file -sPart=$part solution.ps"
 
 [prolog]
 packages = ["swi-prolog"]
@@ -286,6 +383,10 @@ run = "raku solution.raku $input_file $part"
 [red]
 packages = ["red"]
 run = "red solution.red $input_file $part"
+
+[rexx]
+packages = ["regina"]
+run = "regina solution.rexx $input_file $part"
 
 [roc]
 customized = true
@@ -318,6 +419,14 @@ run = "(echo $part; echo $input_file) | shakespeare run solution.spl"
 [scheme]
 packages = ["guile"]
 run = "guile -s solution.scm $input_file $part"
+
+[sml]
+packages = ["polyml"]
+run = "poly --script solution.sml $input_file $part"
+
+[snobol]
+packages = ["snobol4"]
+run = "snobol4 -b solution.sno $input_file $part"
 
 [sql]
 packages = ["sqlite"]
@@ -357,6 +466,10 @@ swiftc solution.swift
 [tcl]
 packages = ["tcl"]
 run = "tclsh solution.tcl $input_file $part"
+
+[txr]
+packages = ["txr"]
+run = "txr solution.tl $input_file $part"
 
 [typescript]
 packages = ["nodejs_24"]

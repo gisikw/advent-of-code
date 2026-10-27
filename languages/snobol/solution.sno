@@ -1,0 +1,9 @@
+        F = HOST(2, HOST(3))
+        P = HOST(2, HOST(3) + 1)
+        INPUT(.IN, 10, , F)            :F(ERR)
+        N = 0
+LOOP    LINE = IN                      :F(DONE)
+        N = N + 1                      :(LOOP)
+DONE    OUTPUT = 'Received ' N ' lines of input for part ' P   :(END)
+ERR     OUTPUT = 'cannot open ' F
+END

@@ -1,0 +1,4 @@
+/n 0 def
+/fh InputFile (r) file def
+{ fh 1024 string readline exch pop not { exit } if /n n 1 add def } loop
+(Received ) print n 20 string cvs print ( lines of input for part ) print Part print (\n) print

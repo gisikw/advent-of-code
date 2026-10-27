@@ -1,0 +1,6 @@
+procedure main(args)
+  f := open(args[1]) | stop("no file")
+  n := 0
+  while read(f) do n +:= 1
+  write("Received ", n, " lines of input for part ", args[2])
+end
