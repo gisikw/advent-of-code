@@ -29,17 +29,17 @@ func main() {
 		deps[task] = append(deps[task], prereq)
 		candidates[prereq] = append(candidates[prereq], task)
 		remaining[prereq] = 2
+		remaining[task] = 2
 	}
 
 	queue := make([]string, 0)
 	path := make([]string, 0)
 
-	for node, _ := range remaining {
+	for node := range remaining {
 		if len(deps[node]) == 0 {
 			queue = append(queue, node)
 		}
 	}
-
 
 	time := 0
 	workerCount := 1
@@ -48,7 +48,7 @@ func main() {
 	}
 	workers := make([]Worker, workerCount)
 	done := len(remaining)
-	for done >= 0 {
+	for done > 0 {
 		time++
 		for w := range workers {
 			if workers[w].Tick > 1 {
