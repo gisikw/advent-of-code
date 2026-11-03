@@ -24,33 +24,15 @@ func main() {
 
 	carts := []Cart{}
 	grid := make(map[complex128]Cart)
+	dirs := map[byte]complex128{'^': -1i, 'v': 1i, '<': -1, '>': 1}
 
 	for y:=0; y<len(lines); y++ {
 		for x:=0; x<len(lines[y]); x++ {
-			char := lines[y][x]
-			if char == 'v' {
-				pos := complex(float64(x), float64(y))
-				cart := Cart{Pos: pos, Dir: complex(0, 1) }
-				carts = append(carts, cart)
-				grid[pos] = cart
-			} else if char == '^' {
-				pos := complex(float64(x), float64(y))
-				cart := Cart{Pos: pos, Dir: complex(0, -1) }
-				carts = append(carts, cart)
-				grid[pos] = cart
-			} else if char == '<' {
-				pos := complex(float64(x), float64(y))
-				cart := Cart{Pos: pos, Dir: complex(-1, 0) }
-				carts = append(carts, cart)
-				grid[pos] = cart
-			} else if char == '>' {
-				pos := complex(float64(x), float64(y))
-				cart := Cart{Pos: pos, Dir: complex(1, 0) }
-				carts = append(carts, cart)
-				grid[pos] = cart
+			if d, ok := dirs[lines[y][x]]; ok { 
+				carts = append(carts, Cart{Pos: complex(float64(x), float64(y)), Dir: d})
 			}
 		}
-		lines[y] = strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(lines[y], "<", "-"), ">", "-"), "^", "|"), "v", "|")
+		lines[y] = strings.NewReplacer("<","-",">","-","^","|","v","|").Replace(lines[y])
 	}
 
 	done:
@@ -58,33 +40,31 @@ func main() {
 		// print(lines, grid)
 
 		slices.SortFunc(carts, func(a, b Cart) int {
-			res := cmp.Compare(imag(a.Pos), imag(b.Pos))
-			if res == 0 {
-				res = cmp.Compare(real(a.Pos), real(b.Pos))
-			}
-			return res
+			return cmp.Or(cmp.Compare(imag(a.Pos), imag(b.Pos)), cmp.Compare(real(a.Pos), real(b.Pos)))
 		})
 
 		for c:=0; c < len(carts); c++ {
+			cart := &carts[c]
+
 			// Guard
-			if carts[c].Round == i {
+			if cart.Round == i {
 				continue
 			}
-			carts[c].Round = i
+			cart.Round = i
 
 			// Move
-			delete(grid, carts[c].Pos)
-			carts[c].Pos += carts[c].Dir
-			x := real(carts[c].Pos)
-			y := imag(carts[c].Pos)
+			delete(grid, cart.Pos)
+			cart.Pos += cart.Dir
+			x := real(cart.Pos)
+			y := imag(cart.Pos)
 
 			// Crash
-			_, ok := grid[carts[c].Pos]; if ok {
+			if _, ok := grid[cart.Pos]; ok {
 				if part == 1 {
 					fmt.Printf("%d,%d\n", int(x), int(y))
 					break done
 				}
-				pos := carts[c].Pos
+				pos := cart.Pos
 				delete(grid, pos)
 				carts = slices.DeleteFunc(carts, func(d Cart) bool {
 					return d.Pos == pos
@@ -98,21 +78,21 @@ func main() {
 				c = 0
 				continue
 			}
-			grid[carts[c].Pos] = carts[c]
+			grid[cart.Pos] = carts[c]
 
 			// Turn
-			char := lines[int(y)][int(x)]
-			if char == '/' {
-				carts[c].Dir = complex(real(carts[c].Dir), -imag(carts[c].Dir)) * -1i
-			} else if char == '\\' {
-				carts[c].Dir = complex(real(carts[c].Dir), -imag(carts[c].Dir)) * 1i
-			} else if char == '+' {
-				if carts[c].Turn == 0 {
-					carts[c].Dir *= -1i
-				} else if carts[c].Turn == 2 {
-					carts[c].Dir *= 1i
+			switch lines[int(y)][int(x)] {
+			case '/':
+				cart.Dir = complex(real(cart.Dir), -imag(cart.Dir)) * -1i
+			case '\\':
+				cart.Dir = complex(real(cart.Dir), -imag(cart.Dir)) * 1i
+			case '+':
+				if cart.Turn == 0 {
+					cart.Dir *= -1i
+				} else if cart.Turn == 2 {
+					cart.Dir *= 1i
 				}
-				carts[c].Turn = (carts[c].Turn + 1) % 3
+				cart.Turn = (cart.Turn + 1) % 3
 			}
 		}
 	}
