@@ -54,7 +54,7 @@ func main() {
 	}
 
 	done:
-	for i:=1; i++ {
+	for i:=1; ; i++ {
 		// print(lines, grid)
 
 		slices.SortFunc(carts, func(a, b Cart) int {
